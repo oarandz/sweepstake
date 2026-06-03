@@ -276,6 +276,24 @@ header p{font-size:.85rem;color:rgba(255,255,255,.55);margin-top:4px;position:re
 }
 .controls-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px;}
 
+/* ═══ COUNTRY CODE BADGE ════════════════════════════════════════════════════ */
+.cc {
+  display: inline-block;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+  padding: 1px 4px;
+  vertical-align: middle;
+  line-height: 1.4;
+  margin-right: 2px;
+}
+.tier-top .cc { background: rgba(255,215,0,0.25); color: #FFD700; }
+.tier-bot .cc { background: rgba(240,100,100,0.22); color: #f08080; }
+.tier-mid .cc { background: rgba(100,180,255,0.18); color: #90c8ff; }
+
 /* ═══ PHASE NEXT BUTTON ════════════════════════════════════════════════════ */
 #phase-next-btn {
   animation: goldPulse 1.8s ease-in-out infinite;
@@ -377,54 +395,54 @@ const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyTr7-xqay4ERJa6H9wY
 //  48 TEAMS — sorted FIFA rank best→worst (April 2026)
 // ─────────────────────────────────────────────────────────────────────────────
 const ALL_TEAMS = [
-  {name:"France",            flag:"🇫🇷", rank:1  },
-  {name:"Spain",             flag:"🇪🇸", rank:2  },
-  {name:"Argentina",         flag:"🇦🇷", rank:3  },
-  {name:"England",           flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", rank:4  },
-  {name:"Portugal",          flag:"🇵🇹", rank:5  },
-  {name:"Brazil",            flag:"🇧🇷", rank:6  },
-  {name:"Netherlands",       flag:"🇳🇱", rank:7  },
-  {name:"Morocco",           flag:"🇲🇦", rank:8  },
-  {name:"Belgium",           flag:"🇧🇪", rank:9  },
-  {name:"Germany",           flag:"🇩🇪", rank:10 },
-  {name:"Croatia",           flag:"🇭🇷", rank:11 },
-  {name:"Colombia",          flag:"🇨🇴", rank:13 },
-  {name:"Senegal",           flag:"🇸🇳", rank:14 },
-  {name:"Mexico",            flag:"🇲🇽", rank:15 },
-  {name:"United States",     flag:"🇺🇸", rank:16 },
-  {name:"Uruguay",           flag:"🇺🇾", rank:17 },
-  {name:"Japan",             flag:"🇯🇵", rank:18 },
-  {name:"Switzerland",       flag:"🇨🇭", rank:19 },
-  {name:"Iran",              flag:"🇮🇷", rank:21 },
-  {name:"Austria",           flag:"🇦🇹", rank:23 },
-  {name:"Ecuador",           flag:"🇪🇨", rank:24 },
-  {name:"South Korea",       flag:"🇰🇷", rank:25 },
-  {name:"Australia",         flag:"🇦🇺", rank:26 },
-  {name:"Egypt",             flag:"🇪🇬", rank:29 },
-  {name:"Canada",            flag:"🇨🇦", rank:30 },
-  {name:"Ivory Coast",       flag:"🇨🇮", rank:33 },
-  {name:"Qatar",             flag:"🇶🇦", rank:35 },
-  {name:"Algeria",           flag:"🇩🇿", rank:36 },
-  {name:"Sweden",            flag:"🇸🇪", rank:39 },
-  {name:"Tunisia",           flag:"🇹🇳", rank:40 },
-  {name:"Czechia",           flag:"🇨🇿", rank:41 },
-  {name:"Türkiye",           flag:"🇹🇷", rank:42 },
-  {name:"Norway",            flag:"🇳🇴", rank:44 },
-  {name:"Scotland",          flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", rank:47 },
-  {name:"DR Congo",          flag:"🇨🇩", rank:51 },
-  {name:"Bosnia & Herz.",    flag:"🇧🇦", rank:52 },
-  {name:"Panama",            flag:"🇵🇦", rank:53 },
-  {name:"Saudi Arabia",      flag:"🇸🇦", rank:57 },
-  {name:"South Africa",      flag:"🇿🇦", rank:60 },
-  {name:"Iraq",              flag:"🇮🇶", rank:65 },
-  {name:"Ghana",             flag:"🇬🇭", rank:66 },
-  {name:"Paraguay",          flag:"🇵🇾", rank:68 },
-  {name:"New Zealand",       flag:"🇳🇿", rank:95 },
-  {name:"Jordan",            flag:"🇯🇴", rank:100},
-  {name:"Uzbekistan",        flag:"🇺🇿", rank:105},
-  {name:"Cape Verde",        flag:"🇨🇻", rank:108},
-  {name:"Curaçao",           flag:"🇨🇼", rank:119},
-  {name:"Indonesia",         flag:"🇮🇩", rank:122},
+  {name:"France",            flag:"FRA", rank:1  },
+  {name:"Spain",             flag:"ESP", rank:2  },
+  {name:"Argentina",         flag:"ARG", rank:3  },
+  {name:"England",           flag:"ENG", rank:4  },
+  {name:"Portugal",          flag:"POR", rank:5  },
+  {name:"Brazil",            flag:"BRA", rank:6  },
+  {name:"Netherlands",       flag:"NED", rank:7  },
+  {name:"Morocco",           flag:"MAR", rank:8  },
+  {name:"Belgium",           flag:"BEL", rank:9  },
+  {name:"Germany",           flag:"GER", rank:10 },
+  {name:"Croatia",           flag:"CRO", rank:11 },
+  {name:"Colombia",          flag:"COL", rank:13 },
+  {name:"Senegal",           flag:"SEN", rank:14 },
+  {name:"Mexico",            flag:"MEX", rank:15 },
+  {name:"United States",     flag:"USA", rank:16 },
+  {name:"Uruguay",           flag:"URU", rank:17 },
+  {name:"Japan",             flag:"JPN", rank:18 },
+  {name:"Switzerland",       flag:"SUI", rank:19 },
+  {name:"Iran",              flag:"IRN", rank:21 },
+  {name:"Austria",           flag:"AUT", rank:23 },
+  {name:"Ecuador",           flag:"ECU", rank:24 },
+  {name:"South Korea",       flag:"KOR", rank:25 },
+  {name:"Australia",         flag:"AUS", rank:26 },
+  {name:"Egypt",             flag:"EGY", rank:29 },
+  {name:"Canada",            flag:"CAN", rank:30 },
+  {name:"Ivory Coast",       flag:"CIV", rank:33 },
+  {name:"Qatar",             flag:"QAT", rank:35 },
+  {name:"Algeria",           flag:"ALG", rank:36 },
+  {name:"Sweden",            flag:"SWE", rank:39 },
+  {name:"Tunisia",           flag:"TUN", rank:40 },
+  {name:"Czechia",           flag:"CZE", rank:41 },
+  {name:"Türkiye",           flag:"TUR", rank:42 },
+  {name:"Norway",            flag:"NOR", rank:44 },
+  {name:"Scotland",          flag:"SCO", rank:47 },
+  {name:"DR Congo",          flag:"COD", rank:51 },
+  {name:"Bosnia & Herz.",    flag:"BIH", rank:52 },
+  {name:"Panama",            flag:"PAN", rank:53 },
+  {name:"Saudi Arabia",      flag:"KSA", rank:57 },
+  {name:"South Africa",      flag:"RSA", rank:60 },
+  {name:"Iraq",              flag:"IRQ", rank:65 },
+  {name:"Ghana",             flag:"GHA", rank:66 },
+  {name:"Paraguay",          flag:"PAR", rank:68 },
+  {name:"New Zealand",       flag:"NZL", rank:95 },
+  {name:"Jordan",            flag:"JOR", rank:100},
+  {name:"Uzbekistan",        flag:"UZB", rank:105},
+  {name:"Cape Verde",        flag:"CPV", rank:108},
+  {name:"Curaçao",           flag:"CUW", rank:119},
+  {name:"Indonesia",         flag:"IDN", rank:122},
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -506,6 +524,13 @@ function updateDrawBtn() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  DISPLAY HELPER — wrap country code in a badge span
+// ─────────────────────────────────────────────────────────────────────────────
+function teamLabel(t, tierCls) {
+  return `<span class="cc">${t.flag}</span>${t.name}`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  POOL DISPLAY
 // ─────────────────────────────────────────────────────────────────────────────
 // Map team name → DOM element in pool
@@ -529,7 +554,7 @@ function buildPool(topNames, bottomNames, middleNames) {
       if (!t) return;
       const el = document.createElement('span');
       el.className = `pool-team ${cls}`;
-      el.textContent = t.flag + ' ' + t.name;
+      el.innerHTML = teamLabel(t);
       el.id = 'pool-' + name.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'');
       grid.appendChild(el);
       poolEls[name] = el;
@@ -576,7 +601,7 @@ function addTeamToBox(playerName, team, tier) {
   if (!el) return;
   const tag = document.createElement('span');
   tag.className = `pbox-team ${tierMap[tier]||''}`;
-  tag.textContent = iconMap[tier] + team.flag + ' ' + team.name;
+  tag.innerHTML = iconMap[tier] + teamLabel(team);
   el.appendChild(tag);
 }
 
@@ -812,7 +837,7 @@ function showResults(skipped, leftoverMiddle, numPlayers) {
     card.style.animationDelay = (pi * 0.07) + 's';
     const html = assignments[player].map((t,ti) =>
       `<span class="team-tag ${tierCls[t.tier]||''}" style="animation-delay:${(pi*.07+ti*.04)}s">
-        ${tierIcon[t.tier]||''}${t.flag} ${t.name}
+        ${tierIcon[t.tier]||''}${teamLabel(t)}
         <span class="team-rank">#${t.rank}</span>
       </span>`
     ).join('');
