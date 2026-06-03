@@ -1366,7 +1366,9 @@ function buildFixtureCard(f) {
   const aDisp = displayName(f.away);
   const homeText = hDisp.text || f.home;
   const awayText = aDisp.text || f.away;
-  const ho=ownerOf(homeText), ao=ownerOf(awayText);
+  // Only look up owners for real resolved team names — not placeholder descriptions
+  const ho = hDisp.resolved ? ownerOf(homeText) : null;
+  const ao = aDisp.resolved ? ownerOf(awayText) : null;
   const isClash=ho&&ao&&ho!==ao, isSame=ho&&ao&&ho===ao, hasRes=f.score&&f.score!=='';
   const card=document.createElement('div');
   card.className='fixture'+(hasRes?' has-result':'')+(isClash?' clash':'');
