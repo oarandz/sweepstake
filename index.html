@@ -146,8 +146,8 @@ header p{font-size:.85rem;color:rgba(255,255,255,.55);margin-top:4px;position:re
 /* Three-column layout: teams pool | reel | player boxes */
 .arena-layout{
   display:grid;
-  grid-template-columns:1fr 280px 1fr;
-  gap:14px;
+  grid-template-columns:1fr 240px 1fr;
+  gap:12px;
   align-items:start;
 }
 @media(max-width:700px){
@@ -157,8 +157,14 @@ header p{font-size:.85rem;color:rgba(255,255,255,.55);margin-top:4px;position:re
 /* ── Team Pool (left) ── */
 #pool-col{
   background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);
-  border-radius:12px;padding:14px;min-height:300px;
+  border-radius:12px;padding:14px;
+  max-height:calc(100vh - 280px);
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.2) transparent;
 }
+#pool-col::-webkit-scrollbar{width:4px;}
+#pool-col::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px;}
 #pool-col h3{
   font-family:'Black Han Sans',sans-serif;font-size:.85rem;
   letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.45);
@@ -185,7 +191,7 @@ header p{font-size:.85rem;color:rgba(255,255,255,.55);margin-top:4px;position:re
 }
 
 /* ── Reel (centre) ── */
-#reel-col{display:flex;flex-direction:column;align-items:center;gap:12px;}
+#reel-col{display:flex;flex-direction:column;align-items:center;gap:10px;align-self:start;position:sticky;top:20px;}
 
 #spin-info{
   font-family:'Black Han Sans',sans-serif;font-size:1rem;letter-spacing:.04em;
@@ -222,25 +228,41 @@ header p{font-size:.85rem;color:rgba(255,255,255,.55);margin-top:4px;position:re
 #prog-bar{height:100%;background:linear-gradient(90deg,var(--glight),var(--gold));border-radius:6px;transition:width .4s ease;width:0%;}
 
 /* ── Player Boxes (right) ── */
-#players-col{display:flex;flex-direction:column;gap:8px;}
+#players-col{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+  gap:6px;
+  align-content:start;
+  max-height:calc(100vh - 280px);
+  overflow-y:auto;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,215,0,.3) transparent;
+}
+#players-col::-webkit-scrollbar{width:4px;}
+#players-col::-webkit-scrollbar-thumb{background:rgba(255,215,0,.3);border-radius:2px;}
+
 .player-box{
   background:rgba(0,0,0,.25);border:1.5px solid rgba(255,255,255,.1);
-  border-radius:10px;padding:10px 12px;
+  border-radius:8px;padding:7px 9px;
   transition:border-color .3s,box-shadow .3s;
+  min-width:0;
 }
 .player-box.active-player{
   border-color:var(--gold);
-  box-shadow:0 0 18px rgba(255,215,0,.3);
+  box-shadow:0 0 14px rgba(255,215,0,.35);
+  background:rgba(255,215,0,.05);
 }
 .player-box-name{
-  font-family:'Black Han Sans',sans-serif;font-size:.9rem;
-  color:rgba(255,255,255,.75);letter-spacing:.04em;margin-bottom:6px;
+  font-family:'Black Han Sans',sans-serif;font-size:.8rem;
+  color:rgba(255,255,255,.8);letter-spacing:.03em;margin-bottom:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.player-box-teams{display:flex;flex-wrap:wrap;gap:4px;min-height:24px;}
+.player-box-teams{display:flex;flex-wrap:wrap;gap:3px;}
 .pbox-team{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:3px 8px;border-radius:5px;font-size:.78rem;font-weight:700;
+  display:inline-flex;align-items:center;gap:3px;
+  padding:2px 6px;border-radius:4px;font-size:.7rem;font-weight:700;
   animation:tagDrop .35s cubic-bezier(.34,1.56,.64,1) both;
+  white-space:nowrap;
 }
 @keyframes tagDrop{from{opacity:0;transform:scale(.6) translateY(-8px);}to{opacity:1;transform:scale(1) translateY(0);}}
 .pbox-team.tier-top{background:var(--top-bg);border:1px solid var(--top-bdr);color:#FFD700;}
@@ -684,7 +706,7 @@ async function startDraw() {
     document.getElementById('phase-banner').textContent = '🎯 Phase 3 — Random Draw';
     const midOrder = buildSpinOrder(players, middlePerPlayer);
     for (const playerName of midOrder) {
-      const team = middlePool.shift();
+      const team = middlePool.splice(Math.floor(Math.random() * middlePool.length), 1)[0];
       setActiveBox(playerName);
       updateProgress(done, totalDraws, '🎯 Random draw');
       document.getElementById('spin-info').innerHTML = `<span style="color:rgba(255,255,255,.6);font-size:.85rem;">Drawing for</span><br>${playerName}`;
@@ -881,27 +903,27 @@ async function saveToSheets() {
     timestamp: new Date().toISOString(),
     players: players.map(p => ({
       name: p,
-      teams: assignments[p].map(t => `${t.flag} ${t.name} (#${t.rank})`)
+      teams: assignments[p].map(t => t.flag + ' ' + t.name + ' (#' + t.rank + ')')
     }))
   };
 
+  // Apps Script requires a form-encoded POST to avoid CORS preflight.
+  // We use no-cors so the browser doesn't block the opaque response;
+  // the script will run regardless — we just can't read the response back.
+  const body = new URLSearchParams({ data: JSON.stringify(payload) });
+
   try {
-    const resp = await fetch(SHEETS_URL, {
+    await fetch(SHEETS_URL, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(payload)
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
     });
-    const data = await resp.json();
-    if (data.status === 'ok') {
-      showToast('✅ Saved to Google Sheets!');
-      btn.textContent = '✅ Saved!';
-    } else {
-      showToast('Error: ' + (data.message || 'unknown'));
-      btn.disabled = false;
-      btn.textContent = '💾 Save to Google Sheets';
-    }
+    // With no-cors we can't confirm, but if we got here without throwing it sent.
+    showToast('✅ Sent to Google Sheets!');
+    btn.textContent = '✅ Saved!';
   } catch(e) {
-    showToast('❌ Could not reach Google Sheets.');
+    showToast('❌ Could not reach Google Sheets — check your connection.');
     btn.disabled = false;
     btn.textContent = '💾 Save to Google Sheets';
   }
