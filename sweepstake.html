@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Cup 2026 Sweepstake</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:   #FFD700;
+  --grass:  #1a6b2f;
+  --glight: #2d9e47;
+  --pitch:  #0b3d1a;
+  --dark:   #071a0c;
+  --white:  #ffffff;
+  --red:    #e03535;
+  --top-bg:    rgba(255,215,0,0.10);
+  --top-bdr:   rgba(255,215,0,0.45);
+  --bot-bg:    rgba(240,100,100,0.10);
+  --bot-bdr:   rgba(240,100,100,0.40);
+  --mid-bg:    rgba(100,180,255,0.08);
+  --mid-bdr:   rgba(100,180,255,0.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Barlow',sans-serif;
+  background:var(--pitch);
+  min-height:100vh;
+  color:var(--white);
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 70px,rgba(255,255,255,0.025) 70px,rgba(255,255,255,0.025) 140px),
+    repeating-linear-gradient(90deg,transparent,transparent 70px,rgba(255,255,255,0.025) 70px,rgba(255,255,255,0.025) 140px);
+}
+
+/* ═══ HEADER ═══════════════════════════════════════════════════════════════ */
+header{
+  background:linear-gradient(135deg,var(--dark) 0%,#1a4028 50%,var(--dark) 100%);
+  border-bottom:4px solid var(--gold);
+  text-align:center;padding:22px 20px 16px;
+  position:relative;overflow:hidden;
+}
+header::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(255,215,0,0.15),transparent 70%);
+}
+header h1{
+  font-family:'Black Han Sans',sans-serif;
+  font-size:clamp(1.8rem,5vw,3.2rem);
+  color:var(--gold);letter-spacing:0.05em;
+  text-shadow:0 2px 14px rgba(255,215,0,0.5),0 4px 30px rgba(0,0,0,0.8);
+  position:relative;
+}
+header p{font-size:.85rem;color:rgba(255,255,255,.55);margin-top:4px;position:relative;letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
+
+/* ═══ LAYOUT ════════════════════════════════════════════════════════════════ */
+.container{max-width:1200px;margin:0 auto;padding:24px 16px 60px;}
+
+.card{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;padding:22px;margin-bottom:18px;
+}
+.card h2{
+  font-family:'Black Han Sans',sans-serif;font-size:1.1rem;
+  color:var(--gold);letter-spacing:.07em;margin-bottom:16px;text-transform:uppercase;
+}
+
+/* ═══ PLAYER ENTRY ══════════════════════════════════════════════════════════ */
+.entry-row{display:flex;gap:10px;margin-bottom:10px;}
+.entry-row input{
+  flex:1;padding:12px 16px;border-radius:9px;
+  border:2px solid rgba(255,255,255,.15);
+  background:rgba(0,0,0,.35);color:var(--white);
+  font-family:'Barlow',sans-serif;font-size:1rem;font-weight:600;
+  transition:border-color .2s;outline:none;
+}
+.entry-row input:focus{border-color:var(--gold);}
+.entry-row input::placeholder{color:rgba(255,255,255,.3);font-weight:400;}
+
+.btn{
+  padding:11px 20px;border:none;border-radius:9px;
+  font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.05em;
+  cursor:pointer;transition:transform .15s,opacity .15s,box-shadow .15s;white-space:nowrap;
+}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.4);}
+.btn:active:not(:disabled){transform:translateY(0);}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+.btn-gold{background:linear-gradient(135deg,#FFD700,#c49a00);color:#071a0c;}
+.btn-green{background:linear-gradient(135deg,var(--glight),var(--grass));color:#fff;}
+.btn-red{background:linear-gradient(135deg,#e03535,#9e1a1a);color:#fff;}
+.btn-grey{background:rgba(255,255,255,.13);color:#fff;}
+
+#player-list{display:flex;flex-wrap:wrap;gap:8px;min-height:40px;align-items:flex-start;}
+.player-chip{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(255,215,0,.1);border:1.5px solid rgba(255,215,0,.3);
+  border-radius:30px;padding:6px 12px 6px 10px;
+  font-weight:700;font-size:.88rem;color:var(--gold);
+  animation:chipIn .2s ease;
+}
+@keyframes chipIn{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:scale(1);}}
+.chip-x{
+  width:17px;height:17px;border-radius:50%;background:rgba(255,255,255,.1);
+  border:none;color:rgba(255,255,255,.55);cursor:pointer;font-size:.8rem;
+  line-height:17px;text-align:center;padding:0;transition:background .15s;
+}
+.chip-x:hover{background:var(--red);color:#fff;}
+
+#summary-bar{
+  background:rgba(0,0,0,.28);border-radius:8px;padding:10px 14px;
+  margin-top:14px;font-size:.85rem;color:rgba(255,255,255,.7);display:none;
+}
+#summary-bar strong{color:var(--gold);}
+
+/* ═══ DRAW BUTTON ═══════════════════════════════════════════════════════════ */
+.draw-zone{text-align:center;padding:8px 0;}
+#draw-btn{
+  padding:18px 56px;font-size:1.5rem;border-radius:14px;letter-spacing:.1em;
+  background:linear-gradient(135deg,#FFD700 0%,#ff9d00 50%,#FFD700 100%);
+  background-size:200% 100%;color:var(--dark);border:none;cursor:pointer;
+  font-family:'Black Han Sans',sans-serif;
+  box-shadow:0 0 40px rgba(255,215,0,.35),0 6px 24px rgba(0,0,0,.5);
+  transition:transform .2s,box-shadow .2s;
+  animation:goldPulse 2.5s ease-in-out infinite;
+}
+@keyframes goldPulse{
+  0%,100%{box-shadow:0 0 28px rgba(255,215,0,.25),0 6px 24px rgba(0,0,0,.5);}
+  50%{box-shadow:0 0 55px rgba(255,215,0,.6),0 6px 24px rgba(0,0,0,.5);}
+}
+#draw-btn:hover:not(:disabled){transform:scale(1.04);}
+#draw-btn:disabled{opacity:.3;animation:none;cursor:not-allowed;}
+
+/* ═══ GOOGLE SHEETS ══════════════════════════════════════════════════════════ */
+#sheets-status{margin-top:8px;font-size:.85rem;color:rgba(255,255,255,.5);min-height:1.2em;}
+.status-ok{color:#6effa0;}.status-err{color:#ff6b6b;}.status-ing{color:var(--gold);}
+
+/* ═══ ARENA — the big draw view ═════════════════════════════════════════════ */
+#arena{display:none;margin-bottom:18px;}
+
+/* Phase banner */
+#phase-banner{
+  text-align:center;margin-bottom:14px;
+  font-family:'Black Han Sans',sans-serif;font-size:1.3rem;letter-spacing:.07em;
+  color:var(--gold);min-height:2rem;
+}
+
+/* Three-column layout: teams pool | reel | player boxes */
+.arena-layout{
+  display:grid;
+  grid-template-columns:1fr 280px 1fr;
+  gap:14px;
+  align-items:start;
+}
+@media(max-width:700px){
+  .arena-layout{grid-template-columns:1fr;grid-template-rows:auto auto auto;}
+}
+
+/* ── Team Pool (left) ── */
+#pool-col{
+  background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:14px;min-height:300px;
+}
+#pool-col h3{
+  font-family:'Black Han Sans',sans-serif;font-size:.85rem;
+  letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.45);
+  margin-bottom:10px;
+}
+#pool-grid{
+  display:flex;flex-wrap:wrap;gap:5px;
+  align-content:flex-start;
+}
+.pool-team{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 9px;border-radius:6px;font-size:.8rem;font-weight:600;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  color:rgba(255,255,255,.75);
+  transition:opacity .4s,transform .4s,background .3s;
+  cursor:default;
+}
+.pool-team.tier-top{background:var(--top-bg);border-color:var(--top-bdr);color:#FFD700;}
+.pool-team.tier-bot{background:var(--bot-bg);border-color:var(--bot-bdr);color:#f08080;}
+.pool-team.tier-mid{background:var(--mid-bg);border-color:var(--mid-bdr);color:#90c8ff;}
+.pool-team.flying{
+  opacity:0;transform:scale(.7) translateY(-20px);
+  pointer-events:none;
+}
+
+/* ── Reel (centre) ── */
+#reel-col{display:flex;flex-direction:column;align-items:center;gap:12px;}
+
+#spin-info{
+  font-family:'Black Han Sans',sans-serif;font-size:1rem;letter-spacing:.04em;
+  color:var(--gold);text-align:center;min-height:2.4rem;line-height:1.2;
+}
+
+#reel-wrap{
+  width:260px;border-radius:16px;overflow:hidden;
+  border:3px solid var(--gold);
+  box-shadow:0 0 36px rgba(255,215,0,.28),0 6px 30px rgba(0,0,0,.5);
+  position:relative;height:120px;background:var(--dark);flex-shrink:0;
+}
+#reel-wrap::before,#reel-wrap::after{
+  content:'';position:absolute;left:0;right:0;height:34px;z-index:2;pointer-events:none;
+}
+#reel-wrap::before{top:0;background:linear-gradient(to bottom,rgba(7,26,12,.96),transparent);}
+#reel-wrap::after{bottom:0;background:linear-gradient(to top,rgba(7,26,12,.96),transparent);}
+#reel-pointer{
+  position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);
+  height:48px;border-top:2px solid rgba(255,215,0,.55);border-bottom:2px solid rgba(255,215,0,.55);
+  background:rgba(255,215,0,.07);z-index:1;pointer-events:none;
+}
+#reel{display:flex;flex-direction:column;align-items:center;will-change:transform;}
+.reel-item{
+  height:48px;display:flex;align-items:center;justify-content:center;
+  font-family:'Black Han Sans',sans-serif;font-size:1.1rem;letter-spacing:.03em;
+  color:rgba(255,255,255,.4);padding:0 14px;white-space:nowrap;width:100%;text-align:center;
+}
+.reel-item.active{color:var(--gold);font-size:1.25rem;}
+
+/* progress */
+#prog-label{font-size:.78rem;color:rgba(255,255,255,.4);text-align:center;letter-spacing:.08em;text-transform:uppercase;}
+.prog-outer{background:rgba(255,255,255,.1);border-radius:6px;height:8px;overflow:hidden;width:100%;}
+#prog-bar{height:100%;background:linear-gradient(90deg,var(--glight),var(--gold));border-radius:6px;transition:width .4s ease;width:0%;}
+
+/* ── Player Boxes (right) ── */
+#players-col{display:flex;flex-direction:column;gap:8px;}
+.player-box{
+  background:rgba(0,0,0,.25);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:10px 12px;
+  transition:border-color .3s,box-shadow .3s;
+}
+.player-box.active-player{
+  border-color:var(--gold);
+  box-shadow:0 0 18px rgba(255,215,0,.3);
+}
+.player-box-name{
+  font-family:'Black Han Sans',sans-serif;font-size:.9rem;
+  color:rgba(255,255,255,.75);letter-spacing:.04em;margin-bottom:6px;
+}
+.player-box-teams{display:flex;flex-wrap:wrap;gap:4px;min-height:24px;}
+.pbox-team{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 8px;border-radius:5px;font-size:.78rem;font-weight:700;
+  animation:tagDrop .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes tagDrop{from{opacity:0;transform:scale(.6) translateY(-8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.pbox-team.tier-top{background:var(--top-bg);border:1px solid var(--top-bdr);color:#FFD700;}
+.pbox-team.tier-bot{background:var(--bot-bg);border:1px solid var(--bot-bdr);color:#f08080;}
+.pbox-team.tier-mid{background:var(--mid-bg);border:1px solid var(--mid-bdr);color:#90c8ff;}
+
+/* ═══ RESULTS (post-draw) ════════════════════════════════════════════════════ */
+#results-section{display:none;}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+.result-card{
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  border-radius:11px;padding:14px;animation:cardIn .3s ease both;
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.result-card .pname{
+  font-family:'Black Han Sans',sans-serif;font-size:1rem;color:var(--gold);
+  margin-bottom:8px;letter-spacing:.04em;
+}
+.team-tag{
+  display:inline-flex;align-items:center;gap:5px;
+  border-radius:5px;padding:4px 9px;font-size:.82rem;font-weight:600;
+  margin:2px 3px 2px 0;color:rgba(255,255,255,.9);
+}
+.team-tag.tier-top{background:var(--top-bg);border:1px solid var(--top-bdr);color:#FFD700;}
+.team-tag.tier-bot{background:var(--bot-bg);border:1px solid var(--bot-bdr);color:#f08080;}
+.team-tag.tier-mid{background:var(--mid-bg);border:1px solid var(--mid-bdr);color:#90c8ff;}
+.team-rank{font-size:.7rem;color:rgba(255,255,255,.38);font-weight:400;}
+
+#skipped-info{
+  display:none;margin-bottom:12px;padding:10px 14px;
+  background:rgba(224,53,53,.1);border:1px solid rgba(224,53,53,.28);
+  border-radius:8px;font-size:.84rem;color:rgba(255,255,255,.65);
+}
+.controls-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px;}
+
+/* ═══ TOAST ═════════════════════════════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:rgba(10,40,15,.95);border:1px solid var(--gold);color:var(--gold);
+  padding:11px 22px;border-radius:9px;font-weight:700;font-size:.92rem;
+  pointer-events:none;transition:transform .3s ease;z-index:999;
+}
+#toast.show{transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚽ WORLD CUP 2026 ⚽</h1>
+  <p>Sweepstake Draw — £2 a go</p>
+</header>
+
+<div class="container">
+
+  <!-- STEP 1: ADD PLAYERS -->
+  <div class="card">
+    <h2>① Add Players (£2 each)</h2>
+    <div class="entry-row">
+      <input type="text" id="name-input" placeholder="Enter player name…" maxlength="40" autocomplete="off">
+      <button class="btn btn-gold" onclick="addPlayer()">Add</button>
+    </div>
+    <div id="player-list"></div>
+    <div id="summary-bar"></div>
+  </div>
+
+  <!-- STEP 2: DRAW -->
+  <div class="card">
+    <h2>② Run the Draw</h2>
+    <div class="draw-zone">
+      <button id="draw-btn" onclick="startDraw()" disabled>🏆 DRAW!</button>
+    </div>
+  </div>
+
+  <!-- ARENA: live draw view -->
+  <div id="arena" class="card">
+    <div id="phase-banner">Get ready…</div>
+    <div class="arena-layout">
+
+      <!-- LEFT: team pool -->
+      <div id="pool-col">
+        <h3>Teams in the draw</h3>
+        <div id="pool-grid"></div>
+      </div>
+
+      <!-- CENTRE: reel + progress -->
+      <div id="reel-col">
+        <div id="spin-info"></div>
+        <div id="reel-wrap">
+          <div id="reel-pointer"></div>
+          <div id="reel"></div>
+        </div>
+        <div id="prog-label"></div>
+        <div class="prog-outer"><div id="prog-bar"></div></div>
+      </div>
+
+      <!-- RIGHT: player assignment boxes -->
+      <div id="players-col"></div>
+
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="card" id="results-section">
+    <h2>🏅 Final Results</h2>
+    <div id="skipped-info"></div>
+    <div class="results-grid" id="results-grid"></div>
+    <div class="controls-row">
+      <button class="btn btn-red" onclick="resetDraw()">↺ Reset Draw</button>
+      <button class="btn btn-green" id="save-btn" onclick="saveToSheets()">💾 Save to Google Sheets</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────────────────────────────────────
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyTr7-xqay4ERJa6H9wYtkBu0uf-UkQxZ2mbu1Z8e_Rsokf-f--CQu1DyCfxBW_znnQ/exec';
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  48 TEAMS — sorted FIFA rank best→worst (April 2026)
+// ─────────────────────────────────────────────────────────────────────────────
+const ALL_TEAMS = [
+  {name:"France",            flag:"🇫🇷", rank:1  },
+  {name:"Spain",             flag:"🇪🇸", rank:2  },
+  {name:"Argentina",         flag:"🇦🇷", rank:3  },
+  {name:"England",           flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", rank:4  },
+  {name:"Portugal",          flag:"🇵🇹", rank:5  },
+  {name:"Brazil",            flag:"🇧🇷", rank:6  },
+  {name:"Netherlands",       flag:"🇳🇱", rank:7  },
+  {name:"Morocco",           flag:"🇲🇦", rank:8  },
+  {name:"Belgium",           flag:"🇧🇪", rank:9  },
+  {name:"Germany",           flag:"🇩🇪", rank:10 },
+  {name:"Croatia",           flag:"🇭🇷", rank:11 },
+  {name:"Colombia",          flag:"🇨🇴", rank:13 },
+  {name:"Senegal",           flag:"🇸🇳", rank:14 },
+  {name:"Mexico",            flag:"🇲🇽", rank:15 },
+  {name:"United States",     flag:"🇺🇸", rank:16 },
+  {name:"Uruguay",           flag:"🇺🇾", rank:17 },
+  {name:"Japan",             flag:"🇯🇵", rank:18 },
+  {name:"Switzerland",       flag:"🇨🇭", rank:19 },
+  {name:"Iran",              flag:"🇮🇷", rank:21 },
+  {name:"Austria",           flag:"🇦🇹", rank:23 },
+  {name:"Ecuador",           flag:"🇪🇨", rank:24 },
+  {name:"South Korea",       flag:"🇰🇷", rank:25 },
+  {name:"Australia",         flag:"🇦🇺", rank:26 },
+  {name:"Egypt",             flag:"🇪🇬", rank:29 },
+  {name:"Canada",            flag:"🇨🇦", rank:30 },
+  {name:"Ivory Coast",       flag:"🇨🇮", rank:33 },
+  {name:"Qatar",             flag:"🇶🇦", rank:35 },
+  {name:"Algeria",           flag:"🇩🇿", rank:36 },
+  {name:"Sweden",            flag:"🇸🇪", rank:39 },
+  {name:"Tunisia",           flag:"🇹🇳", rank:40 },
+  {name:"Czechia",           flag:"🇨🇿", rank:41 },
+  {name:"Türkiye",           flag:"🇹🇷", rank:42 },
+  {name:"Norway",            flag:"🇳🇴", rank:44 },
+  {name:"Scotland",          flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", rank:47 },
+  {name:"DR Congo",          flag:"🇨🇩", rank:51 },
+  {name:"Bosnia & Herz.",    flag:"🇧🇦", rank:52 },
+  {name:"Panama",            flag:"🇵🇦", rank:53 },
+  {name:"Saudi Arabia",      flag:"🇸🇦", rank:57 },
+  {name:"South Africa",      flag:"🇿🇦", rank:60 },
+  {name:"Iraq",              flag:"🇮🇶", rank:65 },
+  {name:"Ghana",             flag:"🇬🇭", rank:66 },
+  {name:"Paraguay",          flag:"🇵🇾", rank:68 },
+  {name:"New Zealand",       flag:"🇳🇿", rank:95 },
+  {name:"Jordan",            flag:"🇯🇴", rank:100},
+  {name:"Uzbekistan",        flag:"🇺🇿", rank:105},
+  {name:"Cape Verde",        flag:"🇨🇻", rank:108},
+  {name:"Curaçao",           flag:"🇨🇼", rank:119},
+  {name:"Indonesia",         flag:"🇮🇩", rank:122},
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let players      = [];
+let assignments  = {};
+let drawInProgress = false;
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PLAYER MANAGEMENT
+// ─────────────────────────────────────────────────────────────────────────────
+function addPlayer() {
+  if (drawInProgress) return;
+  const inp  = document.getElementById('name-input');
+  const name = inp.value.trim();
+  if (!name) return;
+  if (players.includes(name)) { showToast('That name is already in the draw!'); return; }
+  players.push(name);
+  inp.value = '';
+  inp.focus();
+  renderPlayers();
+  updateSummary();
+  updateDrawBtn();
+}
+document.getElementById('name-input').addEventListener('keydown', e => { if (e.key==='Enter') addPlayer(); });
+
+function removePlayer(name) {
+  if (drawInProgress) return;
+  players = players.filter(p => p !== name);
+  renderPlayers(); updateSummary(); updateDrawBtn();
+}
+
+function renderPlayers() {
+  const list = document.getElementById('player-list');
+  list.innerHTML = '';
+  players.forEach(name => {
+    const c = document.createElement('div');
+    c.className = 'player-chip';
+    c.innerHTML = `${name}<button class="chip-x" onclick="removePlayer('${esc(name)}')">✕</button>`;
+    list.appendChild(c);
+  });
+}
+
+function esc(s) { return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DISTRIBUTION CALC
+// ─────────────────────────────────────────────────────────────────────────────
+function calcDistribution(n) {
+  const topCount       = n;
+  const bottomCount    = n;
+  const middleRaw      = 48 - 2 * n;
+  const middlePerPlayer = middleRaw > 0 ? Math.floor(middleRaw / n) : 0;
+  const teamsPerPlayer  = 2 + middlePerPlayer;
+  const middleUsed      = middlePerPlayer * n;
+  const middleTotal     = Math.max(middleRaw, 0);
+  const leftoverMiddle  = middleTotal - middleUsed;
+  const skipped         = 48 - (teamsPerPlayer * n) - leftoverMiddle;
+  return { teamsPerPlayer, topCount, bottomCount, middlePerPlayer, leftoverMiddle, skipped };
+}
+
+function updateSummary() {
+  const bar = document.getElementById('summary-bar');
+  if (!players.length) { bar.style.display='none'; return; }
+  const n = players.length;
+  const { teamsPerPlayer, middlePerPlayer, leftoverMiddle } = calcDistribution(n);
+  bar.style.display = 'block';
+  bar.innerHTML =
+    `<strong>${n}</strong> players · <strong>${teamsPerPlayer}</strong> team${teamsPerPlayer!==1?'s':''} each · ` +
+    `<span style="color:#FFD700;">🏆 1 top ${n}</span> + ` +
+    `<span style="color:#f08080;">🎲 1 bottom ${n}</span>` +
+    (middlePerPlayer > 0 ? ` + <span style="color:#90c8ff;">🎯 ${middlePerPlayer} random</span>` : '') +
+    (leftoverMiddle > 0 ? ` · <span style="color:rgba(255,255,255,.4);">${leftoverMiddle} teams unallocated</span>` : '');
+}
+
+function updateDrawBtn() {
+  document.getElementById('draw-btn').disabled = players.length < 2 || drawInProgress;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  POOL DISPLAY
+// ─────────────────────────────────────────────────────────────────────────────
+// Map team name → DOM element in pool
+const poolEls = {};
+
+function buildPool(topNames, bottomNames, middleNames) {
+  const grid = document.getElementById('pool-grid');
+  grid.innerHTML = '';
+  Object.keys(poolEls).forEach(k => delete poolEls[k]);
+
+  // Order: top | middle | bottom (visual grouping)
+  const groups = [
+    { names: topNames,    cls: 'tier-top' },
+    { names: middleNames, cls: 'tier-mid' },
+    { names: bottomNames, cls: 'tier-bot' },
+  ];
+
+  groups.forEach(({ names, cls }) => {
+    names.forEach(name => {
+      const t = ALL_TEAMS.find(t => t.name === name);
+      if (!t) return;
+      const el = document.createElement('span');
+      el.className = `pool-team ${cls}`;
+      el.textContent = t.flag + ' ' + t.name;
+      el.id = 'pool-' + name.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'');
+      grid.appendChild(el);
+      poolEls[name] = el;
+    });
+  });
+}
+
+function flyTeamAway(teamName) {
+  const el = poolEls[teamName];
+  if (el) {
+    el.classList.add('flying');
+    setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 450);
+    delete poolEls[teamName];
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PLAYER BOXES (right column during draw)
+// ─────────────────────────────────────────────────────────────────────────────
+function buildPlayerBoxes() {
+  const col = document.getElementById('players-col');
+  col.innerHTML = '';
+  players.forEach(name => {
+    const box = document.createElement('div');
+    box.className = 'player-box';
+    box.id = 'pbox-' + esc(name).replace(/\s+/g,'-');
+    box.innerHTML = `<div class="player-box-name">${name}</div><div class="player-box-teams" id="pteams-${esc(name).replace(/\s+/g,'-')}"></div>`;
+    col.appendChild(box);
+  });
+}
+
+function setActiveBox(playerName) {
+  document.querySelectorAll('.player-box').forEach(b => b.classList.remove('active-player'));
+  const id = 'pbox-' + playerName.replace(/\s+/g,'-');
+  const box = document.getElementById(id);
+  if (box) box.classList.add('active-player');
+}
+
+function addTeamToBox(playerName, team, tier) {
+  const tierMap = { top:'tier-top', bottom:'tier-bot', mid:'tier-mid' };
+  const iconMap = { top:'🏆', bottom:'🎲', mid:'🎯' };
+  const id = 'pteams-' + playerName.replace(/\s+/g,'-');
+  const el = document.getElementById(id);
+  if (!el) return;
+  const tag = document.createElement('span');
+  tag.className = `pbox-team ${tierMap[tier]||''}`;
+  tag.textContent = iconMap[tier] + team.flag + ' ' + team.name;
+  el.appendChild(tag);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DRAW LOGIC
+// ─────────────────────────────────────────────────────────────────────────────
+async function startDraw() {
+  if (players.length < 2 || drawInProgress) return;
+  drawInProgress = true;
+  assignments = {};
+  players.forEach(p => assignments[p] = []);
+  updateDrawBtn();
+
+  const n = players.length;
+  const { teamsPerPlayer, middlePerPlayer, leftoverMiddle, skipped } = calcDistribution(n);
+
+  // Split teams
+  const topTier    = shuffle([...ALL_TEAMS.slice(0, n)]);
+  const bottomTier = shuffle([...ALL_TEAMS.slice(48 - n)]);
+  const middleAll  = shuffle([...ALL_TEAMS.slice(n, 48 - n)]);
+  const middlePool = middleAll.slice(0, middlePerPlayer * n);
+  const unused     = middleAll.slice(middlePerPlayer * n); // leftover middles — not drawn
+
+  // Build pool display: top + middle (only used ones) + bottom
+  const topNames    = topTier.map(t => t.name);
+  const bottomNames = bottomTier.map(t => t.name);
+  const midNames    = middlePool.map(t => t.name);
+
+  // Show arena
+  document.getElementById('arena').style.display = 'block';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('draw-btn').style.display = 'none';
+  buildPool(topNames, bottomNames, midNames);
+  buildPlayerBoxes();
+
+  const totalDraws = n + n + middlePerPlayer * n;
+  let done = 0;
+
+  // ── PHASE 1: Top tier ─────────────────────────────────────────────────────
+  document.getElementById('phase-banner').textContent = '🏆 Phase 1 — Top Team Draw';
+  const topOrder = buildSpinOrder(players, 1);
+  for (const playerName of topOrder) {
+    const team = topTier.shift();
+    setActiveBox(playerName);
+    updateProgress(done, totalDraws, '🏆 Top team draw');
+    document.getElementById('spin-info').innerHTML = `<span style="color:rgba(255,255,255,.6);font-size:.85rem;">Drawing for</span><br>${playerName}`;
+    await spinReel(team, playerName, 'top');
+    flyTeamAway(team.name);
+    assignments[playerName].push({...team, tier:'top'});
+    addTeamToBox(playerName, team, 'top');
+    done++;
+    await sleep(220);
+  }
+
+  // ── PHASE 2: Bottom tier ──────────────────────────────────────────────────
+  document.getElementById('phase-banner').textContent = '🎲 Phase 2 — Bottom Team Draw';
+  const botOrder = buildSpinOrder(players, 1);
+  for (const playerName of botOrder) {
+    const team = bottomTier.shift();
+    setActiveBox(playerName);
+    updateProgress(done, totalDraws, '🎲 Bottom team draw');
+    document.getElementById('spin-info').innerHTML = `<span style="color:rgba(255,255,255,.6);font-size:.85rem;">Drawing for</span><br>${playerName}`;
+    await spinReel(team, playerName, 'bottom');
+    flyTeamAway(team.name);
+    assignments[playerName].push({...team, tier:'bottom'});
+    addTeamToBox(playerName, team, 'bottom');
+    done++;
+    await sleep(220);
+  }
+
+  // ── PHASE 3: Random middle ─────────────────────────────────────────────────
+  if (middlePerPlayer > 0) {
+    document.getElementById('phase-banner').textContent = '🎯 Phase 3 — Random Draw';
+    const midOrder = buildSpinOrder(players, middlePerPlayer);
+    for (const playerName of midOrder) {
+      const team = middlePool.shift();
+      setActiveBox(playerName);
+      updateProgress(done, totalDraws, '🎯 Random draw');
+      document.getElementById('spin-info').innerHTML = `<span style="color:rgba(255,255,255,.6);font-size:.85rem;">Drawing for</span><br>${playerName}`;
+      await spinReel(team, playerName, 'mid');
+      flyTeamAway(team.name);
+      assignments[playerName].push({...team, tier:'mid'});
+      addTeamToBox(playerName, team, 'mid');
+      done++;
+      await sleep(180);
+    }
+  }
+
+  updateProgress(totalDraws, totalDraws, '✅ Complete!');
+  document.getElementById('phase-banner').textContent = '🎉 Draw Complete!';
+  document.getElementById('spin-info').textContent = '';
+  document.querySelectorAll('.player-box').forEach(b => b.classList.remove('active-player'));
+
+  await sleep(1200);
+  showResults(skipped, leftoverMiddle, n);
+  drawInProgress = false;
+}
+
+function buildSpinOrder(players, rounds) {
+  const order = [];
+  let lastPick = null;
+  for (let r = 0; r < rounds; r++) {
+    const rp = shuffle([...players]);
+    if (rp[0] === lastPick && rp.length > 1) {
+      const swap = Math.floor(Math.random() * (rp.length - 1)) + 1;
+      [rp[0], rp[swap]] = [rp[swap], rp[0]];
+    }
+    order.push(...rp);
+    lastPick = rp[rp.length - 1];
+  }
+  return order;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  REEL ANIMATION
+// ─────────────────────────────────────────────────────────────────────────────
+async function spinReel(team, playerName, tier) {
+  const reelEl = document.getElementById('reel');
+  reelEl.style.transition = 'none';
+  reelEl.style.transform   = 'translateY(0)';
+  reelEl.innerHTML = '';
+
+  const finalText = team.flag + ' ' + team.name;
+  const fakes     = shuffle(ALL_TEAMS.map(t => t.flag + ' ' + t.name));
+  const items     = [];
+  for (let i = 0; i < 20; i++) items.push(fakes[i % fakes.length]);
+  items.push(finalText);
+
+  const ITEM_H = 48, wrapH = 120;
+  const centerOffset = Math.floor(wrapH / 2) - Math.floor(ITEM_H / 2); // 36
+
+  items.forEach(text => {
+    const div = document.createElement('div');
+    div.className = 'reel-item';
+    div.textContent = text;
+    reelEl.appendChild(div);
+  });
+
+  reelEl.style.transform = `translateY(${centerOffset}px)`;
+  await sleep(30);
+
+  const targetY = centerOffset - (items.length - 1) * ITEM_H;
+  await animateReel(reelEl, centerOffset, targetY, 2000);
+
+  reelEl.querySelectorAll('.reel-item').forEach(el => el.classList.remove('active'));
+  reelEl.lastChild.classList.add('active');
+
+  const tierLabel = {top:'🏆 TOP TEAM',bottom:'🎲 BOTTOM TEAM',mid:'🎯 RANDOM'}[tier];
+  document.getElementById('spin-info').innerHTML =
+    `✅ <strong>${playerName}</strong><br><span style="font-size:.85rem;color:rgba(255,255,255,.6);">${tierLabel}</span>`;
+
+  await sleep(1100);
+}
+
+function animateReel(el, fromY, toY, duration) {
+  return new Promise(resolve => {
+    const start = performance.now();
+    function frame(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const e = 1 - Math.pow(1 - t, 3);
+      el.style.transform = `translateY(${fromY + (toY - fromY) * e}px)`;
+      t < 1 ? requestAnimationFrame(frame) : resolve();
+    }
+    requestAnimationFrame(frame);
+  });
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function updateProgress(done, total, label) {
+  const pct = total ? (done / total) * 100 : 0;
+  document.getElementById('prog-bar').style.width   = pct + '%';
+  document.getElementById('prog-label').textContent = `${label||''} — ${done} of ${total}`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  SHOW RESULTS
+// ─────────────────────────────────────────────────────────────────────────────
+function showResults(skipped, leftoverMiddle, numPlayers) {
+  document.getElementById('results-section').style.display = 'block';
+
+  const skEl = document.getElementById('skipped-info');
+  if (leftoverMiddle > 0 || skipped > 0) {
+    let msg = '';
+    if (leftoverMiddle > 0) msg += `<strong>${leftoverMiddle} middle team${leftoverMiddle>1?'s':''} not drawn</strong> — couldn't divide evenly into random rounds. `;
+    if (skipped > 0)        msg += `<strong>${skipped} team${skipped>1?'s':''} unallocated</strong>.`;
+    skEl.style.display = 'block';
+    skEl.innerHTML = msg;
+  } else {
+    skEl.style.display = 'none';
+  }
+
+  const grid = document.getElementById('results-grid');
+  grid.innerHTML = '';
+  const tierCls  = {top:'tier-top',bottom:'tier-bot',mid:'tier-mid'};
+  const tierIcon = {top:'🏆',bottom:'🎲',mid:'🎯'};
+
+  players.forEach((player, pi) => {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.style.animationDelay = (pi * 0.07) + 's';
+    const html = assignments[player].map((t,ti) =>
+      `<span class="team-tag ${tierCls[t.tier]||''}" style="animation-delay:${(pi*.07+ti*.04)}s">
+        ${tierIcon[t.tier]||''}${t.flag} ${t.name}
+        <span class="team-rank">#${t.rank}</span>
+      </span>`
+    ).join('');
+    card.innerHTML = `<div class="pname">${player}</div>${html}`;
+    grid.appendChild(card);
+  });
+
+  setTimeout(() => document.getElementById('results-section').scrollIntoView({behavior:'smooth'}), 300);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  RESET
+// ─────────────────────────────────────────────────────────────────────────────
+function resetDraw() {
+  assignments    = {};
+  drawInProgress = false;
+  document.getElementById('arena').style.display           = 'none';
+  document.getElementById('draw-btn').style.display        = '';
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('results-grid').innerHTML        = '';
+  document.getElementById('prog-bar').style.width          = '0%';
+  document.getElementById('reel').innerHTML                = '';
+  document.getElementById('phase-banner').textContent      = 'Get ready…';
+  document.getElementById('spin-info').textContent         = '';
+  updateDrawBtn();
+  showToast('Draw reset — ready to go again!');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GOOGLE SHEETS
+// ─────────────────────────────────────────────────────────────────────────────
+async function saveToSheets() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const payload = {
+    action: 'save',
+    timestamp: new Date().toISOString(),
+    players: players.map(p => ({
+      name: p,
+      teams: assignments[p].map(t => `${t.flag} ${t.name} (#${t.rank})`)
+    }))
+  };
+
+  try {
+    const resp = await fetch(SHEETS_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if (data.status === 'ok') {
+      showToast('✅ Saved to Google Sheets!');
+      btn.textContent = '✅ Saved!';
+    } else {
+      showToast('Error: ' + (data.message || 'unknown'));
+      btn.disabled = false;
+      btn.textContent = '💾 Save to Google Sheets';
+    }
+  } catch(e) {
+    showToast('❌ Could not reach Google Sheets.');
+    btn.disabled = false;
+    btn.textContent = '💾 Save to Google Sheets';
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────────────────────────────────────────
+let _toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// init
+renderPlayers();
+updateDrawBtn();
+</script>
+</body>
+</html>
