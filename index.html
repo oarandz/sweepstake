@@ -253,7 +253,48 @@ nav{display:flex;background:rgba(0,0,0,.35);border-bottom:2px solid rgba(255,215
 .fx-meta{font-size:.7rem;color:rgba(255,255,255,.32);text-align:center;line-height:1.5;}
 .clash-note{font-size:.7rem;color:#ff9090;font-style:italic;}
 .same-owner-note{font-size:.68rem;color:rgba(255,215,0,.45);}
+.fx-placeholder{font-size:.78rem !important;font-style:italic;color:rgba(255,255,255,.45) !important;
+  line-height:1.3;max-width:100%;}
 #fx-empty{text-align:center;color:rgba(255,255,255,.3);padding:30px;font-size:.9rem;}
+
+/* ── FIXTURE VIEW TOGGLES ── */
+.fx-view-row{display:flex;gap:0;margin-bottom:14px;background:rgba(0,0,0,.25);
+  border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.1);}
+.fx-view-btn{flex:1;padding:10px 12px;font-family:'Black Han Sans',sans-serif;font-size:.82rem;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:none;
+  background:transparent;color:rgba(255,255,255,.4);transition:all .15s;
+  border-right:1px solid rgba(255,255,255,.08);}
+.fx-view-btn:last-child{border-right:none;}
+.fx-view-btn:hover{color:rgba(255,255,255,.75);background:rgba(255,255,255,.05);}
+.fx-view-btn.active{background:rgba(255,215,0,.15);color:var(--gold);}
+.fx-second-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.fx-filter{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.13);
+  background:rgba(255,255,255,.06);color:rgba(255,255,255,.55);
+  font-family:'Barlow',sans-serif;font-size:.8rem;font-weight:700;
+  cursor:pointer;transition:all .15s;}
+.fx-filter:hover,.fx-filter.active{background:rgba(255,215,0,.12);
+  border-color:rgba(255,215,0,.38);color:var(--gold);}
+#fx-player-picker{display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+#fx-player-picker label{font-size:.82rem;font-weight:700;color:rgba(255,255,255,.5);
+  letter-spacing:.06em;text-transform:uppercase;}
+#fx-player-select{padding:8px 14px;border-radius:9px;border:2px solid rgba(255,255,255,.15);
+  background:rgba(0,0,0,.4);color:var(--white);font-family:'Barlow',sans-serif;
+  font-size:.95rem;font-weight:700;outline:none;cursor:pointer;
+  min-width:160px;}
+#fx-player-select:focus{border-color:var(--gold);}
+#fx-player-select option{background:#0b3d1a;}
+.date-hdr{font-family:'Black Han Sans',sans-serif;font-size:.88rem;letter-spacing:.1em;
+  text-transform:uppercase;color:rgba(255,255,255,.5);padding:8px 0 5px;
+  border-bottom:1px solid rgba(255,255,255,.08);margin:10px 0 7px;
+  display:flex;align-items:center;gap:8px;}
+.date-hdr .date-count{font-size:.72rem;background:rgba(255,255,255,.08);
+  border-radius:10px;padding:2px 8px;font-weight:400;color:rgba(255,255,255,.35);}
+.player-hero{background:rgba(255,215,0,.06);border:1px solid rgba(255,215,0,.2);
+  border-radius:10px;padding:12px 16px;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.player-hero-name{font-family:'Black Han Sans',sans-serif;font-size:1.3rem;color:var(--gold);}
+.player-hero-stats{font-size:.82rem;color:rgba(255,255,255,.5);}
+.player-hero-stats strong{color:var(--white);}
 
 /* ── SPINNER / LOAD ── */
 .spinner{display:inline-block;width:22px;height:22px;border:3px solid rgba(255,215,0,.2);
@@ -359,9 +400,12 @@ nav{display:flex;background:rgba(0,0,0,.35);border-bottom:2px solid rgba(255,215
       <div class="lb-legend">
         <span><div class="dot" style="background:#6effa0;"></div>Team still in</span>
         <span><div class="dot" style="background:rgba(255,255,255,.2);"></div>Eliminated</span>
-        <span style="color:var(--gold);">Rank based on teams remaining</span>
       </div>
       <button class="btn btn-grey" style="padding:7px 16px;font-size:.8rem;" onclick="loadFromSheets()">Refresh</button>
+    </div>
+    <div class="fx-view-row" style="margin-bottom:14px;">
+      <button class="fx-view-btn active" id="lb-sort-teams" onclick="setLbSort('teams',this)">Teams Remaining</button>
+      <button class="fx-view-btn" id="lb-sort-goals" onclick="setLbSort('goals',this)">Goals Scored</button>
     </div>
     <div id="lb-last-updated"></div>
     <div id="lb-loading" class="load-msg" style="display:none;"><span class="spinner"></span>Loading…</div>
@@ -369,7 +413,8 @@ nav{display:flex;background:rgba(0,0,0,.35);border-bottom:2px solid rgba(255,215
     <table id="lb-table" style="display:none;">
       <thead><tr>
         <th>#</th><th>Player</th>
-        <th style="text-align:center;">Teams Left</th>
+        <th style="text-align:center;" id="lb-col-teams">Teams Left</th>
+        <th style="text-align:center;" id="lb-col-goals">Goals</th>
         <th>Teams</th>
       </tr></thead>
       <tbody id="lb-body"></tbody>
@@ -383,14 +428,32 @@ nav{display:flex;background:rgba(0,0,0,.35);border-bottom:2px solid rgba(255,215
 <div class="container">
   <div class="card">
     <h2>Fixtures</h2>
-    <div class="fx-filter-row">
-      <button class="fx-filter active" onclick="setFxFilter('all',this)">All 104</button>
-      <button class="fx-filter" onclick="setFxFilter('sweepstake',this)">My Sweepstake</button>
-      <button class="fx-filter" onclick="setFxFilter('clash',this)">Clashes</button>
-      <button class="fx-filter" onclick="setFxFilter('results',this)">With Results</button>
+
+    <!-- View mode toggle -->
+    <div class="fx-view-row">
+      <button class="fx-view-btn active" onclick="setFxView('group',this)">By Group</button>
+      <button class="fx-view-btn" onclick="setFxView('date',this)">By Date</button>
+      <button class="fx-view-btn" onclick="setFxView('player',this)">By Player</button>
     </div>
+
+    <!-- Sub-filters shown in group + date modes -->
+    <div id="fx-filter-row" class="fx-second-row">
+      <button class="fx-filter active" onclick="setFxFilter('all',this)">All</button>
+      <button class="fx-filter" onclick="setFxFilter('sweepstake',this)">Sweepstake only</button>
+      <button class="fx-filter" onclick="setFxFilter('clash',this)">Clashes</button>
+      <button class="fx-filter" onclick="setFxFilter('results',this)">With results</button>
+    </div>
+
+    <!-- Player picker shown in player mode -->
+    <div id="fx-player-picker">
+      <label>Pick player</label>
+      <select id="fx-player-select" onchange="renderFixtures()">
+        <option value="">— choose —</option>
+      </select>
+    </div>
+
     <div id="fx-loading" class="load-msg" style="display:none;"><span class="spinner"></span>Loading…</div>
-    <div id="fx-empty" style="display:none;">No fixtures loaded. Save a draw to Google Sheets first.</div>
+    <div id="fx-empty" style="display:none;">No fixtures to show.</div>
     <div id="fixtures-list"></div>
   </div>
 </div>
@@ -580,6 +643,8 @@ let sheetsFixtures= [];   // loaded from Sheets (with scores)
 let teamOwnerMap  = {};   // normalised name -> player name
 let teamsAliveMap = {};   // normalised name -> bool
 let fxFilter      = 'all';
+let fxView        = 'group';
+let lbSort        = 'teams';
 
 // ════════════════════════════════════════════════════════════════════════════
 //  PAGE NAVIGATION
@@ -599,7 +664,7 @@ function switchPage(page) {
       loadFromSheets();
     }
     if (page === 'leaderboard') renderLeaderboard();
-    if (page === 'fixtures') renderFixtures();
+    if (page === 'fixtures') { populatePlayerPicker(); renderFixtures(); }
   }
 }
 
@@ -996,6 +1061,47 @@ function isAlive(teamStr){
 // ════════════════════════════════════════════════════════════════════════════
 //  LEADERBOARD
 // ════════════════════════════════════════════════════════════════════════════
+function setLbSort(s, btn) {
+  lbSort = s;
+  document.querySelectorAll('#lb-sort-teams,#lb-sort-goals').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // Highlight active column header
+  document.getElementById('lb-col-teams').style.color = s==='teams' ? 'var(--gold)' : '';
+  document.getElementById('lb-col-goals').style.color = s==='goals' ? 'var(--gold)' : '';
+  renderLeaderboard();
+}
+
+function goalsForPlayer(playerTeams) {
+  // Parse all fixture scores for goals scored by this player's teams
+  const scoreMap={};
+  sheetsFixtures.forEach(f=>{ if(f.score) scoreMap[f.match]={score:f.score,home:f.home,away:f.away}; });
+
+  // Also check local draw assignments if no sheets data
+  const allScoredFixtures = Object.values(scoreMap);
+
+  // Normalise team names for matching
+  const teamNames = playerTeams.map(t =>
+    t.replace(/^[A-Z]{2,3} /,'').replace(/ \(#\d+\)$/,'').trim().toLowerCase()
+  );
+
+  let goals = 0;
+  allScoredFixtures.forEach(f => {
+    // Score format: "2-1", "0-0", "1-2 (aet)", "3-2 (pens)" etc.
+    const match = f.score.toString().match(/(\d+)\s*[-–]\s*(\d+)/);
+    if (!match) return;
+    const homeGoals = parseInt(match[1]);
+    const awayGoals = parseInt(match[2]);
+    const homeNorm  = (f.home||'').toLowerCase();
+    const awayNorm  = (f.away||'').toLowerCase();
+
+    teamNames.forEach(tn => {
+      if (homeNorm.includes(tn) || tn.includes(homeNorm)) goals += homeGoals;
+      else if (awayNorm.includes(tn) || tn.includes(awayNorm)) goals += awayGoals;
+    });
+  });
+  return goals;
+}
+
 function renderLeaderboard(){
   const body=document.getElementById('lb-body');
   body.innerHTML='';
@@ -1013,8 +1119,15 @@ function renderLeaderboard(){
 
   const rows=src.map(p=>{
     const alive=p.teams.filter(t=>isAlive(t)).length;
-    return {...p,alive};
-  }).sort((a,b)=>b.alive-a.alive||b.teams.length-a.teams.length);
+    const goals=goalsForPlayer(p.teams);
+    return {...p,alive,goals};
+  });
+
+  if (lbSort==='goals') {
+    rows.sort((a,b)=>b.goals-a.goals||b.alive-a.alive||b.teams.length-a.teams.length);
+  } else {
+    rows.sort((a,b)=>b.alive-a.alive||b.goals-a.goals||b.teams.length-a.teams.length);
+  }
 
   rows.forEach((p,i)=>{
     const rank=i+1;
@@ -1024,10 +1137,17 @@ function renderLeaderboard(){
       const display=t.replace(/^[A-Z]{2,3} /,'').replace(/ \(#\d+\)$/,'');
       return '<span class="lb-chip '+(a?'alive':'out')+'">'+display+'</span>';
     }).join('');
+
+    const goalsHtml='<div style="font-family:Black Han Sans,sans-serif;font-size:1.4rem;text-align:center;'
+      +(lbSort==='goals'?'color:var(--gold);':'color:rgba(255,255,255,.35);')
+      +(p.goals===0?'opacity:.4;':'')+'">'
+      +p.goals+'</div>';
+
     const tr=document.createElement('tr');
     tr.innerHTML='<td class="lb-rank '+rkCls+'">'+rank+'</td>'
       +'<td class="lb-name">'+p.name+'</td>'
       +'<td><div class="lb-alive'+(p.alive===0?' zero':'')+'" style="text-align:center;">'+p.alive+'</div></td>'
+      +'<td>'+goalsHtml+'</td>'
       +'<td><div class="team-chips">'+chips+'</div></td>';
     body.appendChild(tr);
   });
@@ -1036,6 +1156,17 @@ function renderLeaderboard(){
 // ════════════════════════════════════════════════════════════════════════════
 //  FIXTURES
 // ════════════════════════════════════════════════════════════════════════════
+function setFxView(v, btn) {
+  fxView = v;
+  document.querySelectorAll('.fx-view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  // Show/hide sub-controls
+  document.getElementById('fx-filter-row').style.display   = v === 'player' ? 'none' : 'flex';
+  document.getElementById('fx-player-picker').style.display = v === 'player' ? 'flex' : 'none';
+  if (v === 'player') populatePlayerPicker();
+  renderFixtures();
+}
+
 function setFxFilter(f,btn){
   fxFilter=f;
   document.querySelectorAll('.fx-filter').forEach(b=>b.classList.remove('active'));
@@ -1043,69 +1174,343 @@ function setFxFilter(f,btn){
   renderFixtures();
 }
 
+function populatePlayerPicker() {
+  const sel = document.getElementById('fx-player-select');
+  const current = sel.value;
+  // Build player list from local draw or sheets data
+  const src = Object.keys(assignments).length ? players
+    : (sheetsPlayers.length ? sheetsPlayers.map(p => p.name) : []);
+  const names = Object.keys(assignments).length ? players : sheetsPlayers.map(p => p.name);
+  sel.innerHTML = '<option value="">— choose —</option>';
+  names.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    if (name === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
 function renderFixtures(){
   const list=document.getElementById('fixtures-list');
   list.innerHTML='';
 
-  // Merge local fixtures data with any scores from sheets
+  // Merge scores from sheets
   const scoreMap={};
   sheetsFixtures.forEach(f=>{if(f.score) scoreMap[f.match]={score:f.score,winner:f.winner};});
+  const merged = FIXTURES.map(f => ({...f,...(scoreMap[f.match]||{})}));
 
-  // Group by stage
+  if (fxView === 'player') {
+    renderByPlayer(list, merged);
+  } else if (fxView === 'date') {
+    renderByDate(list, merged);
+  } else {
+    renderByGroup(list, merged);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PLACEHOLDER RESOLUTION
+//  Translates codes like "W Group A", "RU Group B", "3rd (B/C/D/E/F)",
+//  "W Match 73" into plain English. If we have actual results in sheetsFixtures,
+//  we resolve to the real team name instead.
+// ─────────────────────────────────────────────────────────────────────────────
+function resolvePlaceholder(raw) {
+  if (!raw) return { text: '', resolved: false };
+
+  // Build a map of match number -> winner/runner-up from sheets data
+  // and group letter -> { winner, runnerUp, third } from group stage results
+  const matchWinner   = {};  // matchNum -> teamName
+  const matchLoser    = {};  // matchNum -> teamName (for 3rd place)
+  const groupWinner   = {};  // 'A' -> teamName
+  const groupRunnerUp = {};  // 'A' -> teamName
+
+  // Score all completed group stage matches to derive standings
+  // We'll do a simplified version: track points per team per group
+  const groupPoints = {};  // 'A' -> { 'Mexico': 6, ... }
+  const groupGoalDiff = {};
+
+  FIXTURES.forEach(f => {
+    const score = (sheetsFixtures.find(sf => sf.match == f.match) || {}).score || f.score || '';
+    const winner = (sheetsFixtures.find(sf => sf.match == f.match) || {}).winner || f.winner || '';
+
+    if (winner) {
+      matchWinner[f.match] = winner;
+      // For 3rd place loser tracking
+      const loser = winner === f.home ? f.away : f.home;
+      matchLoser[f.match] = loser;
+    }
+
+    if (f.group && score) {
+      const m = score.toString().match(/(\d+)\s*[-–]\s*(\d+)/);
+      if (!m) return;
+      const hg = parseInt(m[1]), ag = parseInt(m[2]);
+      if (!groupPoints[f.group]) groupPoints[f.group] = {};
+      if (!groupGoalDiff[f.group]) groupGoalDiff[f.group] = {};
+      const gp = groupPoints[f.group];
+      const gd = groupGoalDiff[f.group];
+      gp[f.home] = (gp[f.home]||0) + (hg>ag?3:hg===ag?1:0);
+      gp[f.away] = (gp[f.away]||0) + (ag>hg?3:ag===hg?1:0);
+      gd[f.home] = (gd[f.home]||0) + (hg - ag);
+      gd[f.away] = (gd[f.away]||0) + (ag - hg);
+    }
+  });
+
+  // Derive group standings from points
+  Object.keys(groupPoints).forEach(grp => {
+    const teams = Object.keys(groupPoints[grp]);
+    teams.sort((a,b) => {
+      const pd = groupPoints[grp][b] - groupPoints[grp][a];
+      if (pd !== 0) return pd;
+      return (groupGoalDiff[grp][b]||0) - (groupGoalDiff[grp][a]||0);
+    });
+    if (teams[0]) groupWinner[grp]   = teams[0];
+    if (teams[1]) groupRunnerUp[grp] = teams[1];
+  });
+
+  // Group names map for human display
+  const GROUP_TEAMS = {
+    A: 'Mexico, South Africa, South Korea, Czechia',
+    B: 'Canada, Bosnia & Herz., Qatar, Switzerland',
+    C: 'Brazil, Morocco, Scotland, Haiti',
+    D: 'USA, Paraguay, Australia, Turkiye',
+    E: 'Germany, Curacaoo, Ivory Coast, Ecuador',
+    F: 'Netherlands, Japan, Sweden, Tunisia',
+    G: 'Belgium, Egypt, Iran, New Zealand',
+    H: 'Spain, Saudi Arabia, Uruguay, Cape Verde',
+    I: 'France, Senegal, Norway, Iraq',
+    J: 'Argentina, Algeria, Austria, Jordan',
+    K: 'Portugal, DR Congo, Colombia, Uzbekistan',
+    L: 'England, Croatia, Ghana, Panama',
+  };
+
+  const s = raw.trim();
+
+  // ── "W Group X" ── winners of a group ──────────────────────────────────────
+  let m = s.match(/^W(?:inner of)? Group ([A-L])$/i);
+  if (m) {
+    const grp = m[1].toUpperCase();
+    if (groupWinner[grp]) return { text: groupWinner[grp], resolved: true };
+    return { text: 'Winner of Group ' + grp + ' (' + (GROUP_TEAMS[grp]||'') + ')', resolved: false };
+  }
+
+  // ── "RU Group X" ── runners-up ─────────────────────────────────────────────
+  m = s.match(/^RU Group ([A-L])$/i);
+  if (m) {
+    const grp = m[1].toUpperCase();
+    if (groupRunnerUp[grp]) return { text: groupRunnerUp[grp], resolved: true };
+    return { text: 'Runner-up of Group ' + grp + ' (' + (GROUP_TEAMS[grp]||'') + ')', resolved: false };
+  }
+
+  // ── "3rd (X/Y/Z)" or "3rd (A-H)" ── best third-placed ────────────────────
+  m = s.match(/^3rd\s*[\(\[]([A-L\/\-]+)[\)\]]$/i);
+  if (m) {
+    const groups = m[1].replace(/-/g, '/').split('/').map(g=>g.trim().toUpperCase()).filter(Boolean);
+    const label  = groups.join(', ');
+    return {
+      text: 'Best 3rd-place team from Group' + (groups.length>1?'s ':' ') + label,
+      resolved: false
+    };
+  }
+  // "3rd (A-H)" shorthand
+  m = s.match(/^3rd\s*\(([A-L])-([A-L])\)$/i);
+  if (m) {
+    return { text: 'Best 3rd-place team from Groups ' + m[1].toUpperCase() + '–' + m[2].toUpperCase(), resolved: false };
+  }
+
+  // ── "W Match N" / "W MN" ─────────────────────────────────────────────────
+  m = s.match(/^W(?:inner of)?\s+(?:Match\s+|M\s*)(\d+)$/i);
+  if (m) {
+    const n = parseInt(m[1]);
+    if (matchWinner[n]) return { text: matchWinner[n], resolved: true };
+    // Find the source fixture
+    const src = FIXTURES.find(f => f.match === n);
+    if (src) {
+      const h = resolvePlaceholder(src.home).text || src.home;
+      const a = resolvePlaceholder(src.away).text || src.away;
+      return { text: 'Winner of Match ' + n + ' (' + h + ' v ' + a + ')', resolved: false };
+    }
+    return { text: 'Winner of Match ' + n, resolved: false };
+  }
+
+  // ── "L Match N" / "L MN" — loser (3rd place match) ───────────────────────
+  m = s.match(/^L(?:oser of)?\s+(?:Match\s+|M\s*)(\d+)$/i);
+  if (m) {
+    const n = parseInt(m[1]);
+    if (matchLoser[n]) return { text: matchLoser[n], resolved: true };
+    const src = FIXTURES.find(f => f.match === n);
+    if (src) {
+      const h = resolvePlaceholder(src.home).text || src.home;
+      const a = resolvePlaceholder(src.away).text || src.away;
+      return { text: 'Loser of Match ' + n + ' (' + h + ' v ' + a + ')', resolved: false };
+    }
+    return { text: 'Loser of Match ' + n, resolved: false };
+  }
+
+  // Fallback — return as-is
+  return { text: s, resolved: false };
+}
+
+function displayName(raw) {
+  // Returns { text, resolved } — used in fixture card rendering
+  // If it looks like a placeholder (starts with W/RU/3rd/L + word), resolve it
+  if (!raw) return { text: '', resolved: true };
+  if (/^(W |RU |3rd|L M)/i.test(raw) || /^W Match/i.test(raw) || /^Winner|^Runner|^Loser/i.test(raw)) {
+    return resolvePlaceholder(raw);
+  }
+  return { text: raw, resolved: true };
+}
+
+// ── shared fixture card builder ───────────────────────────────────────────────
+function buildFixtureCard(f) {
+  const hDisp = displayName(f.home);
+  const aDisp = displayName(f.away);
+  const homeText = hDisp.text || f.home;
+  const awayText = aDisp.text || f.away;
+  const ho=ownerOf(homeText), ao=ownerOf(awayText);
+  const isClash=ho&&ao&&ho!==ao, isSame=ho&&ao&&ho===ao, hasRes=f.score&&f.score!=='';
+  const card=document.createElement('div');
+  card.className='fixture'+(hasRes?' has-result':'')+(isClash?' clash':'');
+
+  // If not yet resolved, show placeholder in italic smaller text
+  const homeNameHtml = hDisp.resolved
+    ? '<div class="fx-name">'+homeText+'</div>'
+    : '<div class="fx-name fx-placeholder">'+homeText+'</div>';
+  const awayNameHtml = aDisp.resolved
+    ? '<div class="fx-name">'+awayText+'</div>'
+    : '<div class="fx-name fx-placeholder">'+awayText+'</div>';
+
+  const homeOwnerHtml=ho?'<span class="owner-tag'+(isClash?' clash':'')+'">'+ho+'</span>':'';
+  const awayOwnerHtml=ao?'<span class="owner-tag'+(isClash?' clash':'')+'">'+ao+'</span>':'';
+  const scoreHtml=hasRes?'<div class="score-box">'+f.score+'</div>':'<div class="score-box vs">vs</div>';
+  const clashNote=isClash?'<div class="clash-note">'+ho+' v '+ao+'</div>'
+    :isSame?'<div class="same-owner-note">Both: '+ho+'</div>':'';
+  const stageBadge = f.group ? '' : '<div style="font-size:.65rem;color:rgba(255,255,255,.3);margin-top:2px;">'+f.stage+'</div>';
+  card.innerHTML=
+    '<div class="fx-team home">'+homeNameHtml+homeOwnerHtml+'</div>'
+    +'<div class="fx-mid">'+scoreHtml
+    +'<div class="fx-meta">'+f.date+'<br>'+f.time+' BST<br>#'+f.match+'</div>'
+    +stageBadge+clashNote+'</div>'
+    +'<div class="fx-team away">'+awayNameHtml+awayOwnerHtml+'</div>';
+  return card;
+}
+
+function applyFilter(f) {
+  const ho=ownerOf(f.home), ao=ownerOf(f.away);
+  const isSwp=ho||ao, isClash=ho&&ao&&ho!==ao, hasRes=f.score&&f.score!=='';
+  if(fxFilter==='sweepstake') return isSwp;
+  if(fxFilter==='clash')      return isClash;
+  if(fxFilter==='results')    return hasRes;
+  return true;
+}
+
+// ── BY GROUP ──────────────────────────────────────────────────────────────────
+function renderByGroup(list, merged) {
   const stageOrder=['Group A','Group B','Group C','Group D','Group E','Group F',
     'Group G','Group H','Group I','Group J','Group K','Group L',
     'Rd of 32','Rd of 16','Quarter-final','Semi-final','3rd Place','Final'];
   const byStage={};
-  FIXTURES.forEach(f=>{
-    if(!byStage[f.stage]) byStage[f.stage]=[];
-    const merged={...f,...(scoreMap[f.match]||{})};
-    byStage[f.stage].push(merged);
-  });
-
-  let anyRendered=false;
+  merged.forEach(f=>{ if(!byStage[f.stage]) byStage[f.stage]=[]; byStage[f.stage].push(f); });
+  let any=false;
   stageOrder.forEach(stage=>{
-    const fxs=byStage[stage]; if(!fxs) return;
-    const filtered=fxs.filter(f=>{
-      const ho=ownerOf(f.home), ao=ownerOf(f.away);
-      const isSwp=ho||ao, isClash=ho&&ao&&ho!==ao, hasRes=f.score&&f.score!=='';
-      if(fxFilter==='sweepstake') return isSwp;
-      if(fxFilter==='clash')      return isClash;
-      if(fxFilter==='results')    return hasRes;
-      return true;
-    });
-    if(!filtered.length) return;
-    anyRendered=true;
+    const fxs=(byStage[stage]||[]).filter(applyFilter);
+    if(!fxs.length) return;
+    any=true;
+    const hdr=document.createElement('div'); hdr.className='stage-hdr'; hdr.textContent=stage;
+    list.appendChild(hdr);
+    fxs.forEach(f=>list.appendChild(buildFixtureCard(f)));
+  });
+  document.getElementById('fx-empty').style.display=any?'none':'block';
+}
 
-    const hdr=document.createElement('div');
-    hdr.className='stage-hdr'; hdr.textContent=stage; list.appendChild(hdr);
+// ── BY DATE ───────────────────────────────────────────────────────────────────
+function renderByDate(list, merged) {
+  // Parse date strings into sortable values — day and month known, year 2026
+  const monthMap={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+  function dateVal(d) {
+    const parts = d.split(' ');
+    return (monthMap[parts[1]]||0)*100 + parseInt(parts[0]||0);
+  }
+  const filtered = merged.filter(applyFilter);
+  filtered.sort((a,b) => {
+    const dv = dateVal(a.date) - dateVal(b.date);
+    if (dv !== 0) return dv;
+    return a.time.localeCompare(b.time);
+  });
+  if (!filtered.length) { document.getElementById('fx-empty').style.display='block'; return; }
+  document.getElementById('fx-empty').style.display='none';
 
-    filtered.forEach(f=>{
-      const ho=ownerOf(f.home), ao=ownerOf(f.away);
-      const isClash=ho&&ao&&ho!==ao;
-      const isSame=ho&&ao&&ho===ao;
-      const hasRes=f.score&&f.score!=='';
+  // Group by date label
+  let lastDate = null;
+  filtered.forEach(f => {
+    if (f.date !== lastDate) {
+      lastDate = f.date;
+      // Count matches on this date
+      const dayCount = filtered.filter(x => x.date === f.date).length;
+      const hdr = document.createElement('div');
+      hdr.className = 'date-hdr';
+      hdr.innerHTML = f.date + ' <span class="date-count">'+dayCount+' match'+(dayCount>1?'es':'')+'</span>';
+      list.appendChild(hdr);
+    }
+    list.appendChild(buildFixtureCard(f));
+  });
+}
 
-      const card=document.createElement('div');
-      card.className='fixture'+(hasRes?' has-result':'')+(isClash?' clash':'');
+// ── BY PLAYER ─────────────────────────────────────────────────────────────────
+function renderByPlayer(list, merged) {
+  const selName = document.getElementById('fx-player-select').value;
+  if (!selName) {
+    document.getElementById('fx-empty').style.display='block';
+    document.getElementById('fx-empty').textContent='Choose a player above to see their fixtures.';
+    return;
+  }
+  document.getElementById('fx-empty').style.display='none';
 
-      const homeOwnerHtml=ho?'<span class="owner-tag'+(isClash?' clash':'')+'">'+ho+'</span>':'';
-      const awayOwnerHtml=ao?'<span class="owner-tag'+(isClash?' clash':'')+'">'+ao+'</span>':'';
-      const scoreHtml=hasRes
-        ?'<div class="score-box">'+f.score+'</div>'
-        :'<div class="score-box vs">vs</div>';
-      const clashNote=isClash
-        ?'<div class="clash-note">'+ho+' v '+ao+'</div>'
-        :isSame?'<div class="same-owner-note">Both: '+ho+'</div>':'';
+  // Get this player's teams
+  const src = Object.keys(assignments).length
+    ? assignments[selName]
+    : (sheetsPlayers.find(p=>p.name===selName)||{teams:[]}).teams;
+  const playerTeamNames = (Array.isArray(src) && src.length && src[0] && src[0].name)
+    ? src.map(t => t.name.toLowerCase())   // local draw objects
+    : (src||[]).map(t => t.replace(/^[A-Z]{2,3} /,'').replace(/ \(#\d+\)$/,'').trim().toLowerCase());
 
-      card.innerHTML=
-        '<div class="fx-team home"><div class="fx-name">'+f.home+'</div>'+homeOwnerHtml+'</div>'
-        +'<div class="fx-mid">'+scoreHtml+'<div class="fx-meta">'+f.date+'<br>'+f.time+' BST<br>#'+f.match+'</div>'+clashNote+'</div>'
-        +'<div class="fx-team away"><div class="fx-name">'+f.away+'</div>'+awayOwnerHtml+'</div>';
-      list.appendChild(card);
-    });
+  // Hero card
+  const playerFxs = merged.filter(f => {
+    const h=f.home.toLowerCase(), a=f.away.toLowerCase();
+    return playerTeamNames.some(n => h.includes(n)||n.includes(h)||a.includes(n)||n.includes(a));
   });
 
-  document.getElementById('fx-empty').style.display=anyRendered?'none':'block';
+  const played  = playerFxs.filter(f=>f.score&&f.score!=='').length;
+  const hero = document.createElement('div');
+  hero.className = 'player-hero';
+  hero.innerHTML = '<div class="player-hero-name">'+selName+'</div>'
+    +'<div class="player-hero-stats">'
+    +'<strong>'+playerFxs.length+'</strong> fixtures &bull; '
+    +'<strong>'+played+'</strong> played &bull; '
+    +'<strong>'+(playerFxs.length-played)+'</strong> remaining</div>';
+  list.appendChild(hero);
+
+  if (!playerFxs.length) {
+    const msg=document.createElement('div');
+    msg.style.cssText='text-align:center;color:rgba(255,255,255,.3);padding:20px;';
+    msg.textContent='No fixtures found for '+selName+'. Make sure the draw is saved to Sheets.';
+    list.appendChild(msg); return;
+  }
+
+  // Sort by date then time
+  const monthMap={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+  function dateVal(d){const p=d.split(' ');return(monthMap[p[1]]||0)*100+parseInt(p[0]||0);}
+  playerFxs.sort((a,b)=>{const dv=dateVal(a.date)-dateVal(b.date);return dv||a.time.localeCompare(b.time);});
+
+  let lastDate=null;
+  playerFxs.forEach(f=>{
+    if(f.date!==lastDate){
+      lastDate=f.date;
+      const hdr=document.createElement('div');
+      hdr.className='date-hdr'; hdr.textContent=f.date;
+      list.appendChild(hdr);
+    }
+    list.appendChild(buildFixtureCard(f));
+  });
 }
 
 // ════════════════════════════════════════════════════════════════════════════
