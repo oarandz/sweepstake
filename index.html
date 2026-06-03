@@ -276,6 +276,13 @@ header p{font-size:.85rem;color:rgba(255,255,255,.55);margin-top:4px;position:re
 }
 .controls-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px;}
 
+/* ═══ PHASE NEXT BUTTON ════════════════════════════════════════════════════ */
+#phase-next-btn {
+  animation: goldPulse 1.8s ease-in-out infinite;
+  font-size: 1rem;
+  padding: 13px 20px;
+}
+
 /* ═══ TOAST ═════════════════════════════════════════════════════════════════ */
 #toast{
   position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);
@@ -334,6 +341,9 @@ header p{font-size:.85rem;color:rgba(255,255,255,.55);margin-top:4px;position:re
         </div>
         <div id="prog-label"></div>
         <div class="prog-outer"><div id="prog-bar"></div></div>
+        <button id="phase-next-btn" class="btn btn-gold" style="display:none;width:100%;margin-top:4px;" onclick="resolvePhaseClick()">
+          ▶ Start Phase 2
+        </button>
       </div>
 
       <!-- RIGHT: player assignment boxes -->
@@ -606,6 +616,7 @@ async function startDraw() {
   let done = 0;
 
   // ── PHASE 1: Top tier ─────────────────────────────────────────────────────
+  await waitForPhaseClick('▶ Start Phase 1 — Top Team Draw 🏆');
   document.getElementById('phase-banner').textContent = '🏆 Phase 1 — Top Team Draw';
   const topOrder = buildSpinOrder(players, 1);
   for (const playerName of topOrder) {
@@ -622,6 +633,9 @@ async function startDraw() {
   }
 
   // ── PHASE 2: Bottom tier ──────────────────────────────────────────────────
+  document.querySelectorAll('.player-box').forEach(b => b.classList.remove('active-player'));
+  document.getElementById('spin-info').innerHTML = '<span style="color:rgba(255,255,255,.4);font-size:.85rem;">Phase 1 complete</span>';
+  await waitForPhaseClick('▶ Start Phase 2 — Bottom Team Draw 🎲');
   document.getElementById('phase-banner').textContent = '🎲 Phase 2 — Bottom Team Draw';
   const botOrder = buildSpinOrder(players, 1);
   for (const playerName of botOrder) {
@@ -639,6 +653,9 @@ async function startDraw() {
 
   // ── PHASE 3: Random middle ─────────────────────────────────────────────────
   if (middlePerPlayer > 0) {
+    document.querySelectorAll('.player-box').forEach(b => b.classList.remove('active-player'));
+    document.getElementById('spin-info').innerHTML = '<span style="color:rgba(255,255,255,.4);font-size:.85rem;">Phase 2 complete</span>';
+    await waitForPhaseClick('▶ Start Phase 3 — Random Draw 🎯');
     document.getElementById('phase-banner').textContent = '🎯 Phase 3 — Random Draw';
     const midOrder = buildSpinOrder(players, middlePerPlayer);
     for (const playerName of midOrder) {
@@ -660,7 +677,7 @@ async function startDraw() {
   document.getElementById('spin-info').textContent = '';
   document.querySelectorAll('.player-box').forEach(b => b.classList.remove('active-player'));
 
-  await sleep(1200);
+  await waitForPhaseClick('▶ See Final Results 🏅');
   showResults(skipped, leftoverMiddle, n);
   drawInProgress = false;
 }
@@ -686,6 +703,23 @@ function shuffle(arr) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PHASE GATE — pause between phases until user clicks
+// ─────────────────────────────────────────────────────────────────────────────
+let _phaseResolve = null;
+
+function resolvePhaseClick() {
+  document.getElementById('phase-next-btn').style.display = 'none';
+  if (_phaseResolve) { _phaseResolve(); _phaseResolve = null; }
+}
+
+function waitForPhaseClick(label) {
+  const btn = document.getElementById('phase-next-btn');
+  btn.textContent = label;
+  btn.style.display = 'block';
+  return new Promise(resolve => { _phaseResolve = resolve; });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -795,6 +829,7 @@ function showResults(skipped, leftoverMiddle, numPlayers) {
 function resetDraw() {
   assignments    = {};
   drawInProgress = false;
+  _phaseResolve  = null;
   document.getElementById('arena').style.display           = 'none';
   document.getElementById('draw-btn').style.display        = '';
   document.getElementById('results-section').style.display = 'none';
@@ -803,6 +838,7 @@ function resetDraw() {
   document.getElementById('reel').innerHTML                = '';
   document.getElementById('phase-banner').textContent      = 'Get ready…';
   document.getElementById('spin-info').textContent         = '';
+  document.getElementById('phase-next-btn').style.display  = 'none';
   updateDrawBtn();
   showToast('Draw reset — ready to go again!');
 }
