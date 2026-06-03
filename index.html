@@ -299,7 +299,46 @@ nav{display:flex;background:rgba(0,0,0,.35);border-bottom:2px solid rgba(255,215
 .player-hero-stats{font-size:.82rem;color:rgba(255,255,255,.5);}
 .player-hero-stats strong{color:var(--white);}
 
-/* ── SCORE ENTRY MODAL ── */
+/* ── BRACKET ── */
+#bracket-wrap{
+  cursor:grab;position:relative;
+  background:rgba(0,0,0,.15);border-radius:10px;border:1px solid rgba(255,255,255,.07);}
+#bracket-wrap:active{cursor:grabbing;}
+#bracket-inner{position:relative;}
+/* All bracket elements are absolutely positioned divs inside #bracket-inner */
+.bk-card{
+  position:absolute;
+  background:rgba(10,35,15,.85);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:7px;overflow:hidden;
+  transition:border-color .2s,box-shadow .2s;
+  cursor:default;}
+.bk-card.clickable{cursor:pointer;}
+.bk-card.clickable:hover{border-color:rgba(255,215,0,.4);box-shadow:0 0 10px rgba(255,215,0,.12);}
+.bk-card.has-result{border-color:rgba(255,215,0,.22);background:rgba(0,0,0,.5);}
+.bk-card.clash{border-color:rgba(255,100,100,.45);}
+.bk-row{display:flex;align-items:center;padding:0 7px;gap:5px;height:26px;
+  border-bottom:1px solid rgba(255,255,255,.06);}
+.bk-row:last-of-type{border-bottom:none;}
+.bk-name{font-family:'Black Han Sans',sans-serif;font-size:.7rem;letter-spacing:.02em;
+  color:rgba(255,255,255,.72);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bk-name.ph{font-family:'Barlow',sans-serif;font-style:italic;font-weight:400;
+  font-size:.62rem;color:rgba(255,255,255,.25);}
+.bk-name.won{color:var(--gold);}
+.bk-name.out{color:rgba(255,255,255,.2);text-decoration:line-through;}
+.bk-sc{font-family:'Black Han Sans',sans-serif;font-size:.75rem;color:var(--gold);
+  flex-shrink:0;min-width:14px;text-align:right;}
+.bk-own{font-size:.55rem;font-weight:700;padding:1px 4px;border-radius:3px;
+  background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.22);
+  color:rgba(255,215,0,.75);white-space:nowrap;flex-shrink:0;}
+.bk-own.cl{background:rgba(255,80,80,.1);border-color:rgba(255,80,80,.35);color:#ff9090;}
+.bk-foot{font-size:.55rem;color:rgba(255,255,255,.18);text-align:center;
+  padding:2px 4px;background:rgba(0,0,0,.2);letter-spacing:.04em;}
+.bk-col-label{position:absolute;font-family:'Black Han Sans',sans-serif;
+  font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);text-align:center;}
+
+/* SCORE ENTRY MODAL */
 #score-modal-backdrop{
   position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:800;
   display:none;align-items:center;justify-content:center;padding:20px;}
@@ -484,6 +523,7 @@ nav{display:flex;background:rgba(0,0,0,.35);border-bottom:2px solid rgba(255,215
       <button class="fx-view-btn active" onclick="setFxView('group',this)">By Group</button>
       <button class="fx-view-btn" onclick="setFxView('date',this)">By Date</button>
       <button class="fx-view-btn" onclick="setFxView('player',this)">By Player</button>
+      <button class="fx-view-btn" onclick="setFxView('bracket',this)">Bracket</button>
     </div>
 
     <!-- Sub-filters shown in group + date modes -->
@@ -505,6 +545,9 @@ nav{display:flex;background:rgba(0,0,0,.35);border-bottom:2px solid rgba(255,215
     <div id="fx-loading" class="load-msg" style="display:none;"><span class="spinner"></span>Loading…</div>
     <div id="fx-empty" style="display:none;">No fixtures to show.</div>
     <div id="fixtures-list"></div>
+    <div id="bracket-wrap" style="display:none;overflow-x:auto;overflow-y:auto;max-height:80vh;padding-bottom:12px;">
+      <div id="bracket-inner"></div>
+    </div>
   </div>
 </div>
 </div>
@@ -583,132 +626,147 @@ const ALL_TEAMS = [
 // ════════════════════════════════════════════════════════════════════════════
 const FIXTURES = (function(){
   const gs = [
-    // Group A
-    {stage:'Group A',group:'A',date:'11 Jun',time:'20:00',home:'Mexico',        away:'South Africa',  venue:'Estadio Azteca, Mexico City'},
-    {stage:'Group A',group:'A',date:'11 Jun',time:'03:00',home:'South Korea',   away:'Czechia',       venue:'Estadio Akron, Guadalajara'},
-    {stage:'Group A',group:'A',date:'16 Jun',time:'20:00',home:'South Africa',  away:'Czechia',       venue:'Estadio Azteca, Mexico City'},
-    {stage:'Group A',group:'A',date:'16 Jun',time:'23:00',home:'Mexico',        away:'South Korea',   venue:'AT&T Stadium, Arlington'},
-    {stage:'Group A',group:'A',date:'22 Jun',time:'21:00',home:'Mexico',        away:'Czechia',       venue:'Estadio Azteca, Mexico City'},
-    {stage:'Group A',group:'A',date:'22 Jun',time:'21:00',home:'South Africa',  away:'South Korea',   venue:'Estadio BBVA, Monterrey'},
-    // Group B
-    {stage:'Group B',group:'B',date:'12 Jun',time:'20:00',home:'Canada',        away:'Bosnia & Herz.',venue:'BMO Field, Toronto'},
-    {stage:'Group B',group:'B',date:'12 Jun',time:'02:00',home:'Qatar',         away:'Switzerland',   venue:"Levi's Stadium, San Francisco"},
-    {stage:'Group B',group:'B',date:'17 Jun',time:'20:00',home:'Canada',        away:'Qatar',         venue:'BMO Field, Toronto'},
-    {stage:'Group B',group:'B',date:'17 Jun',time:'23:00',home:'Bosnia & Herz.',away:'Switzerland',   venue:'BC Place, Vancouver'},
-    {stage:'Group B',group:'B',date:'23 Jun',time:'21:00',home:'Canada',        away:'Switzerland',   venue:'BMO Field, Toronto'},
-    {stage:'Group B',group:'B',date:'23 Jun',time:'21:00',home:'Bosnia & Herz.',away:'Qatar',         venue:'BC Place, Vancouver'},
-    // Group C
-    {stage:'Group C',group:'C',date:'13 Jun',time:'17:00',home:'Brazil',        away:'Morocco',       venue:'Gillette Stadium, Boston'},
-    {stage:'Group C',group:'C',date:'13 Jun',time:'20:00',home:'Scotland',      away:'Haiti',         venue:'MetLife Stadium, New York'},
-    {stage:'Group C',group:'C',date:'18 Jun',time:'20:00',home:'Brazil',        away:'Scotland',      venue:'Gillette Stadium, Boston'},
-    {stage:'Group C',group:'C',date:'18 Jun',time:'23:00',home:'Morocco',       away:'Haiti',         venue:'Empower Field, Denver'},
-    {stage:'Group C',group:'C',date:'24 Jun',time:'21:00',home:'Brazil',        away:'Haiti',         venue:'Gillette Stadium, Boston'},
-    {stage:'Group C',group:'C',date:'24 Jun',time:'21:00',home:'Morocco',       away:'Scotland',      venue:'MetLife Stadium, New York'},
-    // Group D
-    {stage:'Group D',group:'D',date:'12 Jun',time:'02:00',home:'United States', away:'Paraguay',      venue:'SoFi Stadium, Los Angeles'},
-    {stage:'Group D',group:'D',date:'13 Jun',time:'23:00',home:'Australia',     away:'Turkiye',       venue:'BC Place, Vancouver'},
-    {stage:'Group D',group:'D',date:'19 Jun',time:'20:00',home:'United States', away:'Australia',     venue:'Lumen Field, Seattle'},
-    {stage:'Group D',group:'D',date:'19 Jun',time:'23:00',home:'Paraguay',      away:'Turkiye',       venue:'SoFi Stadium, Los Angeles'},
-    {stage:'Group D',group:'D',date:'25 Jun',time:'01:00',home:'Turkiye',       away:'United States', venue:'SoFi Stadium, Los Angeles'},
-    {stage:'Group D',group:'D',date:'25 Jun',time:'01:00',home:'Paraguay',      away:'Australia',     venue:'Lumen Field, Seattle'},
-    // Group E
-    {stage:'Group E',group:'E',date:'14 Jun',time:'17:00',home:'Germany',       away:'Curacaoo',      venue:'Lincoln Financial, Philadelphia'},
-    {stage:'Group E',group:'E',date:'14 Jun',time:'20:00',home:'Ivory Coast',   away:'Ecuador',       venue:'NRG Stadium, Houston'},
-    {stage:'Group E',group:'E',date:'19 Jun',time:'17:00',home:'Germany',       away:'Ivory Coast',   venue:'Lincoln Financial, Philadelphia'},
-    {stage:'Group E',group:'E',date:'20 Jun',time:'02:00',home:'Curacaoo',      away:'Ecuador',       venue:'NRG Stadium, Houston'},
-    {stage:'Group E',group:'E',date:'25 Jun',time:'21:00',home:'Germany',       away:'Ecuador',       venue:'Lincoln Financial, Philadelphia'},
-    {stage:'Group E',group:'E',date:'25 Jun',time:'21:00',home:'Curacaoo',      away:'Ivory Coast',   venue:'NRG Stadium, Houston'},
-    // Group F
-    {stage:'Group F',group:'F',date:'14 Jun',time:'23:00',home:'Netherlands',   away:'Japan',         venue:'Lincoln Financial, Philadelphia'},
-    {stage:'Group F',group:'F',date:'15 Jun',time:'02:00',home:'Sweden',        away:'Tunisia',       venue:'AT&T Stadium, Arlington'},
-    {stage:'Group F',group:'F',date:'20 Jun',time:'20:00',home:'Netherlands',   away:'Sweden',        venue:'MetLife Stadium, New York'},
-    {stage:'Group F',group:'F',date:'20 Jun',time:'23:00',home:'Japan',         away:'Tunisia',       venue:'Lincoln Financial, Philadelphia'},
-    {stage:'Group F',group:'F',date:'26 Jun',time:'21:00',home:'Netherlands',   away:'Tunisia',       venue:'MetLife Stadium, New York'},
-    {stage:'Group F',group:'F',date:'26 Jun',time:'21:00',home:'Japan',         away:'Sweden',        venue:'Lincoln Financial, Philadelphia'},
-    // Group G
-    {stage:'Group G',group:'G',date:'15 Jun',time:'17:00',home:'Belgium',       away:'Egypt',         venue:'NRG Stadium, Houston'},
-    {stage:'Group G',group:'G',date:'15 Jun',time:'20:00',home:'Iran',          away:'New Zealand',   venue:'AT&T Stadium, Arlington'},
-    {stage:'Group G',group:'G',date:'21 Jun',time:'20:00',home:'Belgium',       away:'Iran',          venue:'NRG Stadium, Houston'},
-    {stage:'Group G',group:'G',date:'21 Jun',time:'23:00',home:'Egypt',         away:'New Zealand',   venue:'Hard Rock Stadium, Miami'},
-    {stage:'Group G',group:'G',date:'27 Jun',time:'21:00',home:'Belgium',       away:'New Zealand',   venue:'NRG Stadium, Houston'},
-    {stage:'Group G',group:'G',date:'27 Jun',time:'21:00',home:'Egypt',         away:'Iran',          venue:'AT&T Stadium, Arlington'},
-    // Group H
-    {stage:'Group H',group:'H',date:'15 Jun',time:'23:00',home:'Spain',         away:'Saudi Arabia',  venue:'Rose Bowl, Los Angeles'},
-    {stage:'Group H',group:'H',date:'16 Jun',time:'02:00',home:'Uruguay',       away:'Cape Verde',    venue:'Empower Field, Denver'},
-    {stage:'Group H',group:'H',date:'21 Jun',time:'17:00',home:'Spain',         away:'Uruguay',       venue:'Rose Bowl, Los Angeles'},
-    {stage:'Group H',group:'H',date:'21 Jun',time:'02:00',home:'Saudi Arabia',  away:'Cape Verde',    venue:'Empower Field, Denver'},
-    {stage:'Group H',group:'H',date:'26 Jun',time:'21:00',home:'Spain',         away:'Cape Verde',    venue:'Rose Bowl, Los Angeles'},
-    {stage:'Group H',group:'H',date:'26 Jun',time:'21:00',home:'Uruguay',       away:'Saudi Arabia',  venue:'Empower Field, Denver'},
-    // Group I
-    {stage:'Group I',group:'I',date:'16 Jun',time:'17:00',home:'France',        away:'Senegal',       venue:'AT&T Stadium, Arlington'},
-    {stage:'Group I',group:'I',date:'16 Jun',time:'23:00',home:'Norway',        away:'Iraq',          venue:'Gillette Stadium, Boston'},
-    {stage:'Group I',group:'I',date:'21 Jun',time:'23:00',home:'France',        away:'Norway',        venue:'AT&T Stadium, Arlington'},
-    {stage:'Group I',group:'I',date:'22 Jun',time:'02:00',home:'Senegal',       away:'Iraq',          venue:'Gillette Stadium, Boston'},
-    {stage:'Group I',group:'I',date:'26 Jun',time:'01:00',home:'France',        away:'Iraq',          venue:'AT&T Stadium, Arlington'},
-    {stage:'Group I',group:'I',date:'26 Jun',time:'01:00',home:'Senegal',       away:'Norway',        venue:'Empower Field, Denver'},
-    // Group J
-    {stage:'Group J',group:'J',date:'17 Jun',time:'17:00',home:'Argentina',     away:'Algeria',       venue:'Hard Rock Stadium, Miami'},
-    {stage:'Group J',group:'J',date:'17 Jun',time:'02:00',home:'Austria',       away:'Jordan',        venue:'Mercedes-Benz, Atlanta'},
-    {stage:'Group J',group:'J',date:'22 Jun',time:'20:00',home:'Argentina',     away:'Austria',       venue:'Hard Rock Stadium, Miami'},
-    {stage:'Group J',group:'J',date:'22 Jun',time:'23:00',home:'Algeria',       away:'Jordan',        venue:'Mercedes-Benz, Atlanta'},
-    {stage:'Group J',group:'J',date:'27 Jun',time:'01:00',home:'Argentina',     away:'Jordan',        venue:'Hard Rock Stadium, Miami'},
-    {stage:'Group J',group:'J',date:'27 Jun',time:'01:00',home:'Algeria',       away:'Austria',       venue:'Mercedes-Benz, Atlanta'},
-    // Group K
-    {stage:'Group K',group:'K',date:'18 Jun',time:'17:00',home:'Portugal',      away:'DR Congo',      venue:'Lumen Field, Seattle'},
-    {stage:'Group K',group:'K',date:'18 Jun',time:'02:00',home:'Colombia',      away:'Uzbekistan',    venue:'Rose Bowl, Los Angeles'},
-    {stage:'Group K',group:'K',date:'23 Jun',time:'20:00',home:'Portugal',      away:'Colombia',      venue:'Lumen Field, Seattle'},
-    {stage:'Group K',group:'K',date:'23 Jun',time:'23:00',home:'DR Congo',      away:'Uzbekistan',    venue:'Rose Bowl, Los Angeles'},
-    {stage:'Group K',group:'K',date:'28 Jun',time:'01:00',home:'Portugal',      away:'Uzbekistan',    venue:'Lumen Field, Seattle'},
-    {stage:'Group K',group:'K',date:'28 Jun',time:'01:00',home:'Colombia',      away:'DR Congo',      venue:'Rose Bowl, Los Angeles'},
-    // Group L
-    {stage:'Group L',group:'L',date:'17 Jun',time:'20:00',home:'England',       away:'Croatia',       venue:'SoFi Stadium, Los Angeles'},
-    {stage:'Group L',group:'L',date:'17 Jun',time:'23:00',home:'Ghana',         away:'Panama',        venue:"Levi's Stadium, San Francisco"},
-    {stage:'Group L',group:'L',date:'22 Jun',time:'02:00',home:'England',       away:'Ghana',         venue:'SoFi Stadium, Los Angeles'},
-    {stage:'Group L',group:'L',date:'23 Jun',time:'02:00',home:'Croatia',       away:'Panama',        venue:"Levi's Stadium, San Francisco"},
-    {stage:'Group L',group:'L',date:'27 Jun',time:'21:00',home:'England',       away:'Panama',        venue:'SoFi Stadium, Los Angeles'},
-    {stage:'Group L',group:'L',date:'27 Jun',time:'21:00',home:'Croatia',       away:'Ghana',         venue:"Levi's Stadium, San Francisco"},
-    // Round of 32
-    {stage:'Rd of 32',group:'',date:'29 Jun',time:'20:00',home:'W Group A',    away:'3rd (B/C/D/E/F)',venue:'Estadio Azteca, Mexico City'},
-    {stage:'Rd of 32',group:'',date:'29 Jun',time:'02:30',home:'W Group E',    away:'3rd (A/B/C/D/F)',venue:'Gillette Stadium, Boston'},
-    {stage:'Rd of 32',group:'',date:'30 Jun',time:'03:00',home:'W Group F',    away:'RU Group C',     venue:'Estadio Akron, Guadalajara'},
-    {stage:'Rd of 32',group:'',date:'30 Jun',time:'20:00',home:'W Group C',    away:'3rd (A/B/D/E/F)',venue:'MetLife Stadium, New York'},
-    {stage:'Rd of 32',group:'',date:'30 Jun',time:'23:00',home:'RU Group A',   away:'RU Group B',     venue:'Estadio Azteca, Mexico City'},
-    {stage:'Rd of 32',group:'',date:'01 Jul',time:'23:00',home:'RU Group E',   away:'RU Group I',     venue:'AT&T Stadium, Arlington'},
-    {stage:'Rd of 32',group:'',date:'01 Jul',time:'20:00',home:'W Group D',    away:'3rd (G/H/I/J/K)',venue:'SoFi Stadium, Los Angeles'},
-    {stage:'Rd of 32',group:'',date:'01 Jul',time:'20:00',home:'W Group B',    away:'3rd (A/E/H/I/J)',venue:'BMO Field, Toronto'},
-    {stage:'Rd of 32',group:'',date:'02 Jul',time:'01:00',home:'W Group D',    away:'3rd (B/E/F/I/J)',venue:"Levi's Stadium, San Francisco"},
-    {stage:'Rd of 32',group:'',date:'02 Jul',time:'21:00',home:'W Group G',    away:'3rd (A/E/H/I/J)',venue:'Lumen Field, Seattle'},
-    {stage:'Rd of 32',group:'',date:'02 Jul',time:'01:00',home:'RU Group K',   away:'RU Group L',     venue:'BC Place, Vancouver'},
-    {stage:'Rd of 32',group:'',date:'02 Jul',time:'21:00',home:'W Group H',    away:'RU Group J',     venue:'Rose Bowl, Los Angeles'},
-    {stage:'Rd of 32',group:'',date:'03 Jul',time:'02:00',home:'W Group B',    away:'3rd (E/F/G/I/J)',venue:'BC Place, Vancouver'},
-    {stage:'Rd of 32',group:'',date:'03 Jul',time:'00:00',home:'W Group J',    away:'RU Group H',     venue:'Hard Rock Stadium, Miami'},
-    {stage:'Rd of 32',group:'',date:'03 Jul',time:'03:30',home:'W Group K',    away:'3rd (D/E/I/J/L)',venue:'Arrowhead, Kansas City'},
-    {stage:'Rd of 32',group:'',date:'03 Jul',time:'20:00',home:'RU Group D',   away:'RU Group G',     venue:'AT&T Stadium, Arlington'},
-    {stage:'Rd of 32',group:'',date:'04 Jul',time:'20:00',home:'W Group I',    away:'3rd (A-H)',       venue:'NRG Stadium, Houston'},
-    {stage:'Rd of 32',group:'',date:'04 Jul',time:'23:00',home:'W Group L',    away:'RU Group F',     venue:'SoFi Stadium, Los Angeles'},
-    {stage:'Rd of 32',group:'',date:'04 Jul',time:'02:00',home:'RU Group J',   away:'RU Group K',     venue:'Mercedes-Benz, Atlanta'},
-    {stage:'Rd of 32',group:'',date:'05 Jul',time:'01:30',home:'W Group G',    away:'3rd (B/E/F/I/J)',venue:'Empower Field, Denver'},
-    // Round of 16
-    {stage:'Rd of 16',group:'',date:'07 Jul',time:'20:00',home:'W Match 73',   away:'W Match 76',     venue:'MetLife Stadium, New York'},
-    {stage:'Rd of 16',group:'',date:'07 Jul',time:'23:00',home:'W Match 74',   away:'W Match 77',     venue:'Gillette Stadium, Boston'},
-    {stage:'Rd of 16',group:'',date:'08 Jul',time:'20:00',home:'W Match 75',   away:'W Match 78',     venue:'Estadio Azteca, Mexico City'},
-    {stage:'Rd of 16',group:'',date:'08 Jul',time:'23:00',home:'W Match 79',   away:'W Match 80',     venue:'AT&T Stadium, Arlington'},
-    {stage:'Rd of 16',group:'',date:'09 Jul',time:'20:00',home:'W Match 81',   away:'W Match 82',     venue:'SoFi Stadium, Los Angeles'},
-    {stage:'Rd of 16',group:'',date:'09 Jul',time:'23:00',home:'W Match 83',   away:'W Match 84',     venue:'Rose Bowl, Los Angeles'},
-    {stage:'Rd of 16',group:'',date:'10 Jul',time:'20:00',home:'W Match 85',   away:'W Match 86',     venue:'BC Place, Vancouver'},
-    {stage:'Rd of 16',group:'',date:'10 Jul',time:'23:00',home:'W Match 87',   away:'W Match 88',     venue:'Arrowhead, Kansas City'},
-    // Quarter-finals
-    {stage:'Quarter-final',group:'',date:'13 Jul',time:'20:00',home:'W Match 93', away:'W Match 94',  venue:'MetLife Stadium, New York'},
-    {stage:'Quarter-final',group:'',date:'13 Jul',time:'23:00',home:'W Match 95', away:'W Match 96',  venue:'AT&T Stadium, Arlington'},
-    {stage:'Quarter-final',group:'',date:'14 Jul',time:'20:00',home:'W Match 97', away:'W Match 98',  venue:'Rose Bowl, Los Angeles'},
-    {stage:'Quarter-final',group:'',date:'14 Jul',time:'23:00',home:'W Match 99', away:'W Match 100', venue:'NRG Stadium, Houston'},
-    // Semi-finals
-    {stage:'Semi-final',group:'',date:'16 Jul',time:'20:00',home:'W Match 101',away:'W Match 102',    venue:'MetLife Stadium, New York'},
-    {stage:'Semi-final',group:'',date:'17 Jul',time:'20:00',home:'W Match 103',away:'W Match 104',    venue:'Rose Bowl, Los Angeles'},
-    // 3rd place
-    {stage:'3rd Place',group:'',date:'19 Jul',time:'16:00',home:'L Match 105', away:'L Match 106',    venue:'AT&T Stadium, Arlington'},
-    // Final
-    {stage:'Final',    group:'',date:'19 Jul',time:'20:00',home:'W Match 105', away:'W Match 106',    venue:'MetLife Stadium, New York'},
+    // ── GROUP STAGE ────────────────────────────────────────────────────────
+    // Source: MLS Soccer official schedule (mlssoccer.com) + NBC Sports confirmed
+    // All times BST
+
+    // Thu 11 Jun
+    {stage:'Group A',group:'A',date:'11 Jun',time:'20:00',home:'Mexico',         away:'South Africa',   venue:'Estadio Azteca, Mexico City'},
+    {stage:'Group A',group:'A',date:'11 Jun',time:'03:00',home:'South Korea',    away:'Czechia',        venue:'Estadio Akron, Guadalajara'},
+    // Fri 12 Jun
+    {stage:'Group B',group:'B',date:'12 Jun',time:'20:00',home:'Canada',         away:'Bosnia & Herz.', venue:'BMO Field, Toronto'},
+    {stage:'Group D',group:'D',date:'12 Jun',time:'02:00',home:'United States',  away:'Paraguay',       venue:'SoFi Stadium, Los Angeles'},
+    // Sat 13 Jun
+    {stage:'Group C',group:'C',date:'13 Jun',time:'17:00',home:'Haiti',          away:'Scotland',       venue:'Gillette Stadium, Boston'},
+    {stage:'Group D',group:'D',date:'13 Jun',time:'23:00',home:'Australia',      away:'Turkiye',        venue:'BC Place, Vancouver'},
+    {stage:'Group C',group:'C',date:'13 Jun',time:'20:00',home:'Brazil',         away:'Morocco',        venue:'MetLife Stadium, New York'},
+    {stage:'Group B',group:'B',date:'13 Jun',time:'02:00',home:'Qatar',          away:'Switzerland',    venue:"Levi's Stadium, San Francisco"},
+    // Sun 14 Jun
+    {stage:'Group E',group:'E',date:'14 Jun',time:'17:00',home:'Ivory Coast',    away:'Ecuador',        venue:'Lincoln Financial, Philadelphia'},
+    {stage:'Group E',group:'E',date:'14 Jun',time:'20:00',home:'Germany',        away:'Curacaoo',       venue:'NRG Stadium, Houston'},
+    {stage:'Group F',group:'F',date:'14 Jun',time:'23:00',home:'Netherlands',    away:'Japan',          venue:'AT&T Stadium, Arlington'},
+    {stage:'Group F',group:'F',date:'15 Jun',time:'02:00',home:'Sweden',         away:'Tunisia',        venue:'Estadio BBVA, Monterrey'},
+    // Mon 15 Jun
+    {stage:'Group H',group:'H',date:'15 Jun',time:'17:00',home:'Spain',          away:'Cape Verde',     venue:'Mercedes-Benz, Atlanta'},
+    {stage:'Group H',group:'H',date:'15 Jun',time:'20:00',home:'Saudi Arabia',   away:'Uruguay',        venue:'Hard Rock Stadium, Miami'},
+    {stage:'Group G',group:'G',date:'15 Jun',time:'23:00',home:'Belgium',        away:'Egypt',          venue:'Lumen Field, Seattle'},
+    {stage:'Group G',group:'G',date:'16 Jun',time:'02:00',home:'Iran',           away:'New Zealand',    venue:'SoFi Stadium, Los Angeles'},
+    // Tue 16 Jun
+    {stage:'Group I',group:'I',date:'16 Jun',time:'17:00',home:'France',         away:'Senegal',        venue:'MetLife Stadium, New York'},
+    {stage:'Group I',group:'I',date:'16 Jun',time:'20:00',home:'Iraq',           away:'Norway',         venue:'Gillette Stadium, Boston'},
+    {stage:'Group J',group:'J',date:'16 Jun',time:'23:00',home:'Argentina',      away:'Algeria',        venue:'Arrowhead, Kansas City'},
+    {stage:'Group J',group:'J',date:'17 Jun',time:'02:00',home:'Austria',        away:'Jordan',         venue:"Levi's Stadium, San Francisco"},
+    // Wed 17 Jun
+    {stage:'Group L',group:'L',date:'17 Jun',time:'17:00',home:'England',        away:'Croatia',        venue:'AT&T Stadium, Arlington'},
+    {stage:'Group L',group:'L',date:'17 Jun',time:'20:00',home:'Ghana',          away:'Panama',         venue:'BMO Field, Toronto'},
+    {stage:'Group K',group:'K',date:'17 Jun',time:'23:00',home:'Portugal',       away:'DR Congo',       venue:'NRG Stadium, Houston'},
+    {stage:'Group K',group:'K',date:'18 Jun',time:'02:00',home:'Uzbekistan',     away:'Colombia',       venue:'Estadio Azteca, Mexico City'},
+    // Thu 18 Jun
+    {stage:'Group A',group:'A',date:'18 Jun',time:'17:00',home:'Czechia',        away:'South Africa',   venue:'Mercedes-Benz, Atlanta'},
+    {stage:'Group B',group:'B',date:'18 Jun',time:'20:00',home:'Switzerland',    away:'Bosnia & Herz.', venue:'SoFi Stadium, Los Angeles'},
+    {stage:'Group B',group:'B',date:'18 Jun',time:'23:00',home:'Canada',         away:'Qatar',          venue:'BC Place, Vancouver'},
+    {stage:'Group A',group:'A',date:'19 Jun',time:'02:00',home:'Mexico',         away:'South Korea',    venue:'Estadio Akron, Guadalajara'},
+    // Fri 19 Jun
+    {stage:'Group C',group:'C',date:'19 Jun',time:'17:00',home:'Brazil',         away:'Haiti',          venue:'Lincoln Financial, Philadelphia'},
+    {stage:'Group C',group:'C',date:'19 Jun',time:'20:00',home:'Scotland',       away:'Morocco',        venue:'Gillette Stadium, Boston'},
+    {stage:'Group D',group:'D',date:'19 Jun',time:'23:00',home:'Turkiye',        away:'Paraguay',       venue:"Levi's Stadium, San Francisco"},
+    {stage:'Group D',group:'D',date:'20 Jun',time:'02:00',home:'United States',  away:'Australia',      venue:'Lumen Field, Seattle'},
+    // Sat 20 Jun
+    {stage:'Group E',group:'E',date:'20 Jun',time:'17:00',home:'Germany',        away:'Ivory Coast',    venue:'BMO Field, Toronto'},
+    {stage:'Group E',group:'E',date:'20 Jun',time:'20:00',home:'Ecuador',        away:'Curacaoo',       venue:'Arrowhead, Kansas City'},
+    {stage:'Group F',group:'F',date:'20 Jun',time:'23:00',home:'Netherlands',    away:'Sweden',         venue:'NRG Stadium, Houston'},
+    {stage:'Group F',group:'F',date:'21 Jun',time:'02:00',home:'Tunisia',        away:'Japan',          venue:'Estadio BBVA, Monterrey'},
+    // Sun 21 Jun
+    {stage:'Group H',group:'H',date:'21 Jun',time:'17:00',home:'Spain',          away:'Saudi Arabia',   venue:'Mercedes-Benz, Atlanta'},
+    {stage:'Group H',group:'H',date:'21 Jun',time:'20:00',home:'Uruguay',        away:'Cape Verde',     venue:'Hard Rock Stadium, Miami'},
+    {stage:'Group G',group:'G',date:'21 Jun',time:'23:00',home:'Belgium',        away:'Iran',           venue:'SoFi Stadium, Los Angeles'},
+    {stage:'Group G',group:'G',date:'22 Jun',time:'02:00',home:'New Zealand',    away:'Egypt',          venue:'BC Place, Vancouver'},
+    // Mon 22 Jun
+    {stage:'Group I',group:'I',date:'22 Jun',time:'17:00',home:'France',         away:'Iraq',           venue:'Lincoln Financial, Philadelphia'},
+    {stage:'Group I',group:'I',date:'22 Jun',time:'20:00',home:'Norway',         away:'Senegal',        venue:'MetLife Stadium, New York'},
+    {stage:'Group J',group:'J',date:'22 Jun',time:'23:00',home:'Argentina',      away:'Austria',        venue:'AT&T Stadium, Arlington'},
+    {stage:'Group J',group:'J',date:'23 Jun',time:'02:00',home:'Jordan',         away:'Algeria',        venue:"Levi's Stadium, San Francisco"},
+    // Tue 23 Jun
+    {stage:'Group L',group:'L',date:'23 Jun',time:'17:00',home:'England',        away:'Ghana',          venue:'Gillette Stadium, Boston'},
+    {stage:'Group L',group:'L',date:'23 Jun',time:'20:00',home:'Panama',         away:'Croatia',        venue:'BMO Field, Toronto'},
+    {stage:'Group K',group:'K',date:'23 Jun',time:'23:00',home:'Portugal',       away:'Uzbekistan',     venue:'NRG Stadium, Houston'},
+    {stage:'Group K',group:'K',date:'24 Jun',time:'02:00',home:'Colombia',       away:'DR Congo',       venue:'Estadio Akron, Guadalajara'},
+    // Wed 24 Jun — simultaneous matchday 3s
+    {stage:'Group C',group:'C',date:'24 Jun',time:'21:00',home:'Scotland',       away:'Brazil',         venue:'Hard Rock Stadium, Miami'},
+    {stage:'Group C',group:'C',date:'24 Jun',time:'21:00',home:'Morocco',        away:'Haiti',          venue:'Mercedes-Benz, Atlanta'},
+    {stage:'Group B',group:'B',date:'24 Jun',time:'21:00',home:'Canada',         away:'Switzerland',    venue:'BC Place, Vancouver'},
+    {stage:'Group B',group:'B',date:'24 Jun',time:'21:00',home:'Bosnia & Herz.', away:'Qatar',          venue:'Lumen Field, Seattle'},
+    {stage:'Group A',group:'A',date:'24 Jun',time:'21:00',home:'Mexico',         away:'Czechia',        venue:'Estadio Azteca, Mexico City'},
+    {stage:'Group A',group:'A',date:'24 Jun',time:'21:00',home:'South Korea',    away:'South Africa',   venue:'Estadio BBVA, Monterrey'},
+    // Thu 25 Jun
+    {stage:'Group E',group:'E',date:'25 Jun',time:'21:00',home:'Ecuador',        away:'Germany',        venue:'MetLife Stadium, New York'},
+    {stage:'Group E',group:'E',date:'25 Jun',time:'21:00',home:'Curacaoo',       away:'Ivory Coast',    venue:'Lincoln Financial, Philadelphia'},
+    {stage:'Group F',group:'F',date:'25 Jun',time:'21:00',home:'Tunisia',        away:'Netherlands',    venue:'Arrowhead, Kansas City'},
+    {stage:'Group F',group:'F',date:'25 Jun',time:'21:00',home:'Japan',          away:'Sweden',         venue:'AT&T Stadium, Arlington'},
+    {stage:'Group D',group:'D',date:'25 Jun',time:'21:00',home:'United States',  away:'Turkiye',        venue:'SoFi Stadium, Los Angeles'},
+    {stage:'Group D',group:'D',date:'25 Jun',time:'21:00',home:'Paraguay',       away:'Australia',      venue:"Levi's Stadium, San Francisco"},
+    // Fri 26 Jun
+    {stage:'Group I',group:'I',date:'26 Jun',time:'21:00',home:'Norway',         away:'France',         venue:'Gillette Stadium, Boston'},
+    {stage:'Group I',group:'I',date:'26 Jun',time:'21:00',home:'Senegal',        away:'Iraq',           venue:'BMO Field, Toronto'},
+    {stage:'Group G',group:'G',date:'26 Jun',time:'21:00',home:'New Zealand',    away:'Belgium',        venue:'BC Place, Vancouver'},
+    {stage:'Group G',group:'G',date:'26 Jun',time:'21:00',home:'Egypt',          away:'Iran',           venue:'Lumen Field, Seattle'},
+    {stage:'Group H',group:'H',date:'26 Jun',time:'21:00',home:'Uruguay',        away:'Spain',          venue:'Estadio Akron, Guadalajara'},
+    {stage:'Group H',group:'H',date:'26 Jun',time:'21:00',home:'Cape Verde',     away:'Saudi Arabia',   venue:'NRG Stadium, Houston'},
+    // Sat 27 Jun
+    {stage:'Group L',group:'L',date:'27 Jun',time:'21:00',home:'Panama',         away:'England',        venue:'MetLife Stadium, New York'},
+    {stage:'Group L',group:'L',date:'27 Jun',time:'21:00',home:'Croatia',        away:'Ghana',          venue:'Lincoln Financial, Philadelphia'},
+    {stage:'Group J',group:'J',date:'27 Jun',time:'21:00',home:'Jordan',         away:'Argentina',      venue:'AT&T Stadium, Arlington'},
+    {stage:'Group J',group:'J',date:'27 Jun',time:'21:00',home:'Algeria',        away:'Austria',        venue:'Arrowhead, Kansas City'},
+    {stage:'Group K',group:'K',date:'27 Jun',time:'21:00',home:'Colombia',       away:'Portugal',       venue:'Hard Rock Stadium, Miami'},
+    {stage:'Group K',group:'K',date:'27 Jun',time:'21:00',home:'DR Congo',       away:'Uzbekistan',     venue:'Mercedes-Benz, Atlanta'},
+
+    // ── ROUND OF 32 (M73-88) ──────────────────────────────────────────────
+    // Source: worldcuppass.com/bracket + MLS Soccer + NBC Sports (all agree)
+    {stage:'Rd of 32',group:'',date:'28 Jun',time:'21:00',home:'RU Group A',     away:'RU Group B',     venue:'SoFi Stadium, Los Angeles'},
+    {stage:'Rd of 32',group:'',date:'29 Jun',time:'21:00',home:'W Group E',      away:'3rd (A/B/C/D/F)',venue:'Gillette Stadium, Boston'},
+    {stage:'Rd of 32',group:'',date:'29 Jun',time:'21:00',home:'W Group F',      away:'RU Group C',     venue:'Estadio BBVA, Monterrey'},
+    {stage:'Rd of 32',group:'',date:'29 Jun',time:'18:00',home:'W Group C',      away:'RU Group F',     venue:'NRG Stadium, Houston'},
+    {stage:'Rd of 32',group:'',date:'30 Jun',time:'21:00',home:'W Group I',      away:'3rd (C/D/F/G/H)',venue:'MetLife Stadium, New York'},
+    {stage:'Rd of 32',group:'',date:'30 Jun',time:'21:00',home:'RU Group E',     away:'RU Group I',     venue:'AT&T Stadium, Arlington'},
+    {stage:'Rd of 32',group:'',date:'30 Jun',time:'21:00',home:'W Group A',      away:'3rd (C/E/F/H/I)',venue:'Estadio Azteca, Mexico City'},
+    {stage:'Rd of 32',group:'',date:'01 Jul',time:'21:00',home:'W Group L',      away:'3rd (E/H/I/J/K)',venue:'Mercedes-Benz, Atlanta'},
+    {stage:'Rd of 32',group:'',date:'01 Jul',time:'21:00',home:'W Group D',      away:'3rd (B/E/F/I/J)',venue:"Levi's Stadium, San Francisco"},
+    {stage:'Rd of 32',group:'',date:'01 Jul',time:'21:00',home:'W Group G',      away:'3rd (A/E/H/I/J)',venue:'Lumen Field, Seattle'},
+    {stage:'Rd of 32',group:'',date:'02 Jul',time:'21:00',home:'RU Group K',     away:'RU Group L',     venue:'BMO Field, Toronto'},
+    {stage:'Rd of 32',group:'',date:'02 Jul',time:'21:00',home:'W Group H',      away:'RU Group J',     venue:'SoFi Stadium, Los Angeles'},
+    {stage:'Rd of 32',group:'',date:'02 Jul',time:'21:00',home:'W Group B',      away:'3rd (E/F/G/I/J)',venue:'BC Place, Vancouver'},
+    {stage:'Rd of 32',group:'',date:'03 Jul',time:'21:00',home:'W Group J',      away:'RU Group H',     venue:'Hard Rock Stadium, Miami'},
+    {stage:'Rd of 32',group:'',date:'03 Jul',time:'21:00',home:'W Group K',      away:'3rd (D/E/I/J/L)',venue:'Arrowhead, Kansas City'},
+    {stage:'Rd of 32',group:'',date:'03 Jul',time:'21:00',home:'RU Group D',     away:'RU Group G',     venue:'AT&T Stadium, Arlington'},
+
+    // ── ROUND OF 16 (M89-96) ──────────────────────────────────────────────
+    // Confirmed: MLS Soccer + NBC Sports + Sky Sports all agree
+    {stage:'Rd of 16',group:'',date:'04 Jul',time:'22:00',home:'W Match 74',     away:'W Match 77',     venue:'Lincoln Financial, Philadelphia'},
+    {stage:'Rd of 16',group:'',date:'04 Jul',time:'18:00',home:'W Match 73',     away:'W Match 75',     venue:'NRG Stadium, Houston'},
+    {stage:'Rd of 16',group:'',date:'05 Jul',time:'21:00',home:'W Match 76',     away:'W Match 78',     venue:'MetLife Stadium, New York'},
+    {stage:'Rd of 16',group:'',date:'05 Jul',time:'01:00',home:'W Match 79',     away:'W Match 80',     venue:'Estadio Azteca, Mexico City'},
+    {stage:'Rd of 16',group:'',date:'06 Jul',time:'20:00',home:'W Match 83',     away:'W Match 84',     venue:'AT&T Stadium, Arlington'},
+    {stage:'Rd of 16',group:'',date:'07 Jul',time:'01:00',home:'W Match 81',     away:'W Match 82',     venue:'Lumen Field, Seattle'},
+    {stage:'Rd of 16',group:'',date:'07 Jul',time:'17:00',home:'W Match 86',     away:'W Match 88',     venue:'Mercedes-Benz, Atlanta'},
+    {stage:'Rd of 16',group:'',date:'07 Jul',time:'21:00',home:'W Match 85',     away:'W Match 87',     venue:'BC Place, Vancouver'},
+
+    // ── QUARTER-FINALS (M97-100) ───────────────────────────────────────────
+    // Confirmed: MLS Soccer + NBC Sports
+    {stage:'Quarter-final',group:'',date:'09 Jul',time:'21:00',home:'W Match 89',away:'W Match 90',     venue:'Gillette Stadium, Boston'},
+    {stage:'Quarter-final',group:'',date:'10 Jul',time:'21:00',home:'W Match 93',away:'W Match 94',     venue:'SoFi Stadium, Los Angeles'},
+    {stage:'Quarter-final',group:'',date:'11 Jul',time:'21:00',home:'W Match 91',away:'W Match 92',     venue:'Hard Rock Stadium, Miami'},
+    {stage:'Quarter-final',group:'',date:'11 Jul',time:'01:00',home:'W Match 95',away:'W Match 96',     venue:'Arrowhead, Kansas City'},
+
+    // ── SEMI-FINALS (M101-102) ─────────────────────────────────────────────
+    // Confirmed: MLS Soccer + NBC Sports — Dallas Jul 14, Atlanta Jul 15
+    {stage:'Semi-final',  group:'',date:'14 Jul',time:'21:00',home:'W Match 97', away:'W Match 98',     venue:'AT&T Stadium, Arlington'},
+    {stage:'Semi-final',  group:'',date:'15 Jul',time:'21:00',home:'W Match 99', away:'W Match 100',    venue:'Mercedes-Benz, Atlanta'},
+
+    // ── 3RD PLACE (M103) ───────────────────────────────────────────────────
+    {stage:'3rd Place',   group:'',date:'18 Jul',time:'18:00',home:'L Match 101',away:'L Match 102',    venue:'Hard Rock Stadium, Miami'},
+
+    // ── FINAL (M104) ───────────────────────────────────────────────────────
+    {stage:'Final',       group:'',date:'19 Jul',time:'20:00',home:'W Match 101',away:'W Match 102',    venue:'MetLife Stadium, New York'},
   ];
   let m = 1; gs.forEach(f => { f.match = m++; }); return gs;
 })();
@@ -1251,11 +1309,15 @@ function setFxView(v, btn) {
   fxView = v;
   document.querySelectorAll('.fx-view-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  // Show/hide sub-controls
-  document.getElementById('fx-filter-row').style.display   = v === 'player' ? 'none' : 'flex';
-  document.getElementById('fx-player-picker').style.display = v === 'player' ? 'flex' : 'none';
-  if (v === 'player') populatePlayerPicker();
-  renderFixtures();
+  const isBracket = v === 'bracket';
+  const isPlayer  = v === 'player';
+  document.getElementById('fx-filter-row').style.display    = (isPlayer || isBracket) ? 'none' : 'flex';
+  document.getElementById('fx-player-picker').style.display = isPlayer  ? 'flex' : 'none';
+  document.getElementById('fixtures-list').style.display    = isBracket ? 'none' : 'block';
+  document.getElementById('bracket-wrap').style.display     = isBracket ? 'block' : 'none';
+  if (isPlayer)  populatePlayerPicker();
+  if (isBracket) renderBracket();
+  else           renderFixtures();
 }
 
 function setFxFilter(f,btn){
@@ -1899,6 +1961,332 @@ async function syncScoreToSheets(matchNum, score, winner, homeTeam, awayTeam) {
       body: new URLSearchParams({ data: JSON.stringify(payload) }).toString()
     });
   } catch(e) { /* silent — local state already updated */ }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  BRACKET VIEW  — pixel-perfect absolute layout
+// ════════════════════════════════════════════════════════════════════════════
+function renderBracket() {
+  const wrap  = document.getElementById('bracket-wrap');
+  const inner = document.getElementById('bracket-inner');
+  inner.innerHTML = '';
+
+  // Merge scores
+  const scoreMap = {};
+  sheetsFixtures.forEach(f => { if (f.score) scoreMap[f.match] = { score: f.score, winner: f.winner }; });
+  Object.entries(localScores).forEach(([m, s]) => { scoreMap[m] = { ...scoreMap[m], ...s }; });
+  const merged = FIXTURES.map(f => ({ ...f, ...(scoreMap[f.match] || {}) }));
+  const state  = getTournamentState();
+  const byNum  = {};
+  merged.forEach(f => { byNum[f.match] = f; });
+
+  // ── Layout constants ──────────────────────────────────────────────────────
+  const CARD_W   = 152;  // card width px
+  const CARD_H   = 68;   // card height px (2 team rows + footer)
+  const COL_GAP  = 36;   // gap between column right-edge and connector
+  const CON_W    = 32;   // connector svg width
+  const COL_STEP = CARD_W + COL_GAP + CON_W; // total column stride
+  const PAD_TOP  = 36;   // top padding (for column labels)
+  const PAD_H    = 16;   // extra padding bottom
+  const LABEL_H  = 22;
+
+  // Bracket has 7 "columns": R32-L, R16-L, QF-L, FINAL, QF-R, R16-R, R32-R
+  // Plus connector SVGs between them — we'll draw everything on a single canvas
+
+  // Column x positions (left edge of card)
+  // Left side reads left-to-right: R32, R16, QF, SF
+  // Right side mirrors: SF, QF, R16, R32
+  // Centre: Final
+
+  const TOTAL_COLS = 9; // R32L, conL1, R16L, conL2, QFL, conL3, SFL, conL4, FINAL, conR4, SFR, conR3, QFR, conR2, R16R, conR1, R32R
+  // Simplified: 5 card-columns per side + 1 final = 9 card slots with connectors between
+  // Left:  col0=R32, col1=R16, col2=QF, col3=SF
+  // Right: col5=SF,  col6=QF,  col7=R16, col8=R32
+  // col4 = Final (centre)
+
+  const colX = []; // x positions of each card column left edge
+  // We have 4 left cols + 1 centre + 4 right cols = 9 cols total
+  // Each left col has a connector to its right
+  // Place from centre outward:
+  const TOTAL_W = 9 * CARD_W + 8 * (COL_GAP + CON_W) + 40;
+  const cx = []; // centre x of each card column
+  for (let i = 0; i < 9; i++) {
+    cx[i] = 20 + i * (CARD_W + COL_GAP + CON_W) + CARD_W / 2;
+  }
+
+  // Bracket match assignments by column index:
+  // col 0: R32 left  [73,74,75,76,77,78,79,80]  — 8 matches
+  // col 1: R16 left  [89,90,91,92]               — 4 matches
+  // col 2: QF  left  [97,98]                     — 2 matches
+  // col 3: SF  left  [101]                        — 1 match
+  // col 4: Final     [104] + 3rd [103]
+  // col 5: SF  right [102]
+  // col 6: QF  right [99,100]
+  // col 7: R16 right [93,94,95,96]
+  // col 8: R32 right [81,82,83,84,85,86,87,88]
+
+  const COLS = [
+    { label:'Rd of 32',   matches:[73,74,75,76,77,78,79,80] },
+    { label:'Rd of 16',   matches:[89,90,91,92] },
+    { label:'QF',         matches:[97,98] },
+    { label:'Semi-final', matches:[101] },
+    { label:'FINAL',      matches:[104], extra:[103] },
+    { label:'Semi-final', matches:[102] },
+    { label:'QF',         matches:[99,100] },
+    { label:'Rd of 16',   matches:[93,94,95,96] },
+    { label:'Rd of 32',   matches:[81,82,83,84,85,86,87,88] },
+  ];
+
+  // Figure out total height — driven by R32 column with 8 cards
+  const R32_COUNT = 8;
+  const TOTAL_H   = PAD_TOP + R32_COUNT * CARD_H + (R32_COUNT - 1) * 8 + PAD_H;
+
+  inner.style.position = 'relative';
+  inner.style.width    = TOTAL_W + 'px';
+  inner.style.height   = TOTAL_H + 'px';
+
+  // ── Card y-positions per column ───────────────────────────────────────────
+  // Each column's cards are evenly distributed across the full height
+  function cardPositions(count) {
+    const usable = TOTAL_H - PAD_TOP - PAD_H;
+    const slot   = usable / count;
+    const positions = [];
+    for (let i = 0; i < count; i++) {
+      positions.push(PAD_TOP + i * slot + (slot - CARD_H) / 2);
+    }
+    return positions;
+  }
+
+  // Precompute y-centres for each column (needed for connectors)
+  const colYCentres = COLS.map(col => {
+    const ys = cardPositions(col.matches.length);
+    return ys.map(y => y + CARD_H / 2);
+  });
+
+  // ── Place cards ───────────────────────────────────────────────────────────
+  COLS.forEach((col, ci) => {
+    const x   = 20 + ci * (CARD_W + COL_GAP + CON_W);
+    const ys  = cardPositions(col.matches.length);
+
+    // Column label
+    const lbl = document.createElement('div');
+    lbl.className = 'bk-col-label';
+    lbl.textContent = col.label;
+    lbl.style.cssText = `left:${x}px;top:${PAD_TOP - LABEL_H}px;width:${CARD_W}px;`;
+    inner.appendChild(lbl);
+
+    col.matches.forEach((mNum, mi) => {
+      const card = makeBracketCard(byNum[mNum], state, x, ys[mi], CARD_W, CARD_H);
+      inner.appendChild(card);
+    });
+
+    // Extra card (3rd place) for centre column
+    if (col.extra) {
+      col.extra.forEach(mNum => {
+        const extraY = ys[ys.length - 1] + CARD_H + 20;
+        const eLabel = document.createElement('div');
+        eLabel.className = 'bk-col-label';
+        eLabel.textContent = '3rd Place · 18 Jul';
+        eLabel.style.cssText = `left:${x}px;top:${extraY - 18}px;width:${CARD_W}px;font-size:.6rem;`;
+        inner.appendChild(eLabel);
+        const card = makeBracketCard(byNum[mNum], state, x, extraY, CARD_W, CARD_H);
+        inner.appendChild(card);
+      });
+    }
+  });
+
+  // ── Draw connector SVGs ───────────────────────────────────────────────────
+  // Each connector sits in the gap between two adjacent card columns.
+  // "sourceCol" = the column with more cards (the feeder)
+  // "sinkCol"   = the column with fewer cards (the receiver)
+  // dir = 'ltr' (left-to-right, source on left) or 'rtl' (source on right)
+
+  const connDefs = [
+    { source:0, sink:1, dir:'ltr' },  // R32-L → R16-L
+    { source:1, sink:2, dir:'ltr' },  // R16-L → QF-L
+    { source:2, sink:3, dir:'ltr' },  // QF-L  → SF-L
+    { source:3, sink:4, dir:'ltr' },  // SF-L  → Final
+    { source:8, sink:7, dir:'rtl' },  // R32-R → R16-R  (source on right)
+    { source:7, sink:6, dir:'rtl' },  // R16-R → QF-R
+    { source:6, sink:5, dir:'rtl' },  // QF-R  → SF-R
+    { source:5, sink:4, dir:'rtl' },  // SF-R  → Final
+  ];
+
+  connDefs.forEach(({ source, sink, dir }) => {
+    const sourceX = 20 + source * (CARD_W + COL_GAP + CON_W);
+    const sinkX   = 20 + sink   * (CARD_W + COL_GAP + CON_W);
+
+    // SVG sits in the gap to the right of the leftmost column of this pair
+    const leftColX  = Math.min(sourceX, sinkX);
+    const svgLeft   = leftColX + CARD_W;
+    const svgW      = Math.abs(sinkX - sourceX) - CARD_W;
+    if (svgW <= 0) return;
+
+    const sourceYs = colYCentres[source];
+    const sinkYs   = colYCentres[sink];
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.style.cssText = `position:absolute;left:${svgLeft}px;top:0;pointer-events:none;overflow:visible;`;
+    svg.setAttribute('width', svgW);
+    svg.setAttribute('height', TOTAL_H);
+
+    const lc    = 'rgba(255,215,0,0.22)';
+    const ratio = sourceYs.length / sinkYs.length;
+
+    // For LTR: source cards exit RIGHT edge of their card (x=0 in SVG coords since SVG starts at card right edge)
+    //          sink card enters from LEFT edge of its card (x=svgW in SVG coords)
+    // For RTL: source cards are on the RIGHT — they exit LEFT from their card (x=svgW in SVG)
+    //          sink card is on the LEFT — enters from RIGHT (x=0 in SVG)
+    const srcEdge  = dir === 'ltr' ? 0      : svgW;  // where source stubs start in SVG x
+    const sinkEdge = dir === 'ltr' ? svgW   : 0;     // where sink line ends in SVG x
+    const stubLen  = svgW * 0.35;
+    const stubEnd  = dir === 'ltr' ? stubLen : svgW - stubLen;
+
+    sinkYs.forEach((sinkY, si) => {
+      const feedStart = Math.round(si * ratio);
+      const feedEnd   = Math.round((si + 1) * ratio) - 1;
+
+      // Horizontal stub from each source card
+      for (let fi = feedStart; fi <= feedEnd; fi++) {
+        const fy = sourceYs[fi];
+        drawLine(svg, srcEdge, fy, stubEnd, fy, lc);
+      }
+
+      // Vertical bracket joining all source stubs for this sink
+      if (feedEnd > feedStart) {
+        const topY = sourceYs[feedStart];
+        const botY = sourceYs[feedEnd];
+        drawLine(svg, stubEnd, topY, stubEnd, botY, lc);
+      }
+
+      // Diagonal/horizontal from bracket midpoint to sink card
+      const midY = (sourceYs[feedStart] + sourceYs[feedEnd]) / 2;
+      drawLine(svg, stubEnd, midY, sinkEdge, sinkY, lc);
+    });
+
+    inner.appendChild(svg);
+  });
+
+  // ── Make draggable ────────────────────────────────────────────────────────
+  let isDrag = false, sx, sy, sl, st;
+  wrap.onmousedown = e => {
+    isDrag = true; sx = e.pageX; sy = e.pageY;
+    sl = wrap.scrollLeft; st = wrap.scrollTop;
+  };
+  wrap.onmouseleave = wrap.onmouseup = () => isDrag = false;
+  wrap.onmousemove = e => {
+    if (!isDrag) return;
+    e.preventDefault();
+    wrap.scrollLeft = sl - (e.pageX - sx);
+    wrap.scrollTop  = st - (e.pageY - sy);
+  };
+}
+
+function drawLine(svg, x1, y1, x2, y2, color) {
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+  line.setAttribute('stroke', color); line.setAttribute('stroke-width', 1.5);
+  line.setAttribute('stroke-linecap', 'round');
+  svg.appendChild(line);
+}
+
+function makeBracketCard(f, state, x, y, w, h) {
+  const div = document.createElement('div');
+  div.className = 'bk-card';
+  div.style.cssText = `left:${x}px;top:${y}px;width:${w}px;`;
+
+  if (!f) {
+    div.style.height = h + 'px';
+    div.style.background = 'rgba(0,0,0,.1)';
+    div.style.border = '1px dashed rgba(255,255,255,.06)';
+    return div;
+  }
+
+  const hDisp = displayName(f.home);
+  const aDisp = displayName(f.away);
+  const homeText = hDisp.text || f.home;
+  const awayText = aDisp.text || f.away;
+
+  const ho = hDisp.resolved ? ownerOf(homeText) : null;
+  const ao = aDisp.resolved ? ownerOf(awayText) : null;
+  const isClash = ho && ao && ho !== ao;
+
+  const hasResult   = f.score && f.score !== '';
+  const winnerName  = (f.winner || '').toLowerCase();
+
+  let homeScore = '', awayScore = '';
+  if (hasResult) {
+    const sm = f.score.toString().match(/(\d+)[^\d]+(\d+)/);
+    if (sm) { homeScore = sm[1]; awayScore = sm[2]; }
+  }
+
+  const homeElim = hDisp.resolved && state.eliminated.has(homeText.toLowerCase());
+  const awayElim = aDisp.resolved && state.eliminated.has(awayText.toLowerCase());
+  const homeWon  = hasResult && winnerName && winnerName === homeText.toLowerCase();
+  const awayWon  = hasResult && winnerName && winnerName === awayText.toLowerCase();
+
+  if (hasResult)  div.classList.add('has-result');
+  if (isClash)    div.classList.add('clash');
+  if (hDisp.resolved && aDisp.resolved) div.classList.add('clickable');
+
+  div.onclick = () => { if (hDisp.resolved && aDisp.resolved) openScoreModal(f.match); };
+
+  // Shorten placeholder text for the card
+  function shortName(text, isPlaceholder) {
+    if (!isPlaceholder) return text;
+    return text
+      .replace('Winner of: ', '')
+      .replace('Runner-up of Group ', 'RU ')
+      .replace('Winner of Group ', 'W ')
+      .replace('Best 3rd-place team from Groups ', '3rd ')
+      .replace('Best 3rd-place team from Group ',  '3rd ')
+      .replace(' (not confirmed yet)', '')
+      .replace(/\s*\([^)]+\)\s*/g, '')   // strip parenthetical team lists
+      .replace('Group  leader: ', '')
+      .replace('Winner of Match ', 'W M')
+      .replace('Loser of Match ', 'L M')
+      .trim();
+  }
+
+  function makeRow(text, isPlaceholder, score, owner, won, elim) {
+    const row = document.createElement('div');
+    row.className = 'bk-row';
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'bk-name' +
+      (isPlaceholder ? ' ph' : '') +
+      (won  ? ' won' : '') +
+      ((elim && !won) ? ' out' : '');
+    nameEl.textContent = shortName(text, isPlaceholder);
+    nameEl.title = text;
+    row.appendChild(nameEl);
+
+    if (owner) {
+      const ownerEl = document.createElement('span');
+      ownerEl.className = 'bk-own' + (isClash ? ' cl' : '');
+      ownerEl.textContent = owner;
+      row.appendChild(ownerEl);
+    }
+
+    if (score) {
+      const sc = document.createElement('span');
+      sc.className = 'bk-sc';
+      sc.textContent = score;
+      row.appendChild(sc);
+    }
+    return row;
+  }
+
+  div.appendChild(makeRow(homeText, !hDisp.resolved, homeScore, ho, homeWon, homeElim));
+  div.appendChild(makeRow(awayText, !aDisp.resolved, awayScore, ao, awayWon, awayElim));
+
+  const foot = document.createElement('div');
+  foot.className = 'bk-foot';
+  foot.textContent = 'M' + f.match + '  ' + f.date;
+  div.appendChild(foot);
+
+  return div;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
